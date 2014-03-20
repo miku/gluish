@@ -110,7 +110,6 @@ Log some running times. Mostly useful in interactive mode.
 ```python
 from gluish.benchmark import timed
 
-
 class SomeWork(luigi.Task):
 
     @timed
