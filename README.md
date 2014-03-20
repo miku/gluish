@@ -15,7 +15,7 @@ decorator and some task templates.
 A basic task that knows its place
 ---------------------------------
 
-You can use `gluish.task.BaseTask` as a superclass.
+`gluish.task.BaseTask` is intended to be used as a supertask.
 
 ```python
 from gluish.task import BaseTask
@@ -24,11 +24,14 @@ import luigi
 import tempfile
 
 class DefaultTask(BaseTask):
-    """ Some default abstract task for your tasks. """
+    """ Some default abstract task for your tasks. BASE and TAG determine
+    the paths, where the artefacts will be stored. """
     BASE = tempfile.gettempdir()
     TAG = 'just-a-test'
 
 class RealTask(DefaultTask):
+    """ Note that this task has a `self.path()`, that figures out the full
+    path for this class' output. """
     date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
     def run(self):
         with self.output().open('w') as output:
