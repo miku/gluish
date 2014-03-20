@@ -1,6 +1,8 @@
 Gluish
 ======
 
+[![Build Status](https://travis-ci.org/miku/gluish.png)](https://travis-ci.org/miku/gluish)
+
 Some glue around [luigi](https://github.com/spotify/luigi).
 
 Provides a base class, that autogenerates its output filenames based on
