@@ -12,7 +12,7 @@ Additionally, provide some smaller utilities, like a TSV format, a benchmark
 decorator and some task templates.
 
 
-A `BaseTask` that knows its place
+A basic task that knows its place
 ---------------------------------
 
 You can use `gluish.task.BaseTask` as a superclass.
@@ -49,4 +49,48 @@ version of the significant parameters.
     # would be something like this on OS X:
     # /var/folders/jy/g_b2kpwx0850/T/just-a-test/RealTask/date-1970-01-01.tsv
 
+```
+
+A TSV format
+------------
+
+Was started on the
+[mailing list](https://groups.google.com/forum/#!searchin/luigi-user/TSV/luigi-user/F813st16xqw/xErC6pXR8zEJ).
+Continuing  the example from above, lets create a task, that generates TSV
+files, named `TabularSource`.
+
+```python
+
+from gluish.format import TSV
+
+class TabularSource(DefaultTask):
+    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
+    def run(self):
+        with self.output().open('w') as output:
+            for i in range(10):
+                output.write_tsv(i, 'Hello', 'World')
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(), format=TSV)
+```
+
+Another class, `TabularConsumer` can use `iter_tsv` on the handle obtained
+by opening the file. The `row` will be a tuple, or - if `cols` is specified -
+a `collections.namedtuple`.
+
+```python
+class TabularConsumer(DefaultTask):
+    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
+    def requires(self):
+        return TabularSource()
+    
+    def run(self):
+        with self.input().open() as handle:
+            for row in handle.iter_tsv(cols=('id', 'greeting', 'greetee'))
+                print('Greeting: {}'.format(row.greeting))
+                print('Greetee: {}'.format(row.greetee))
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path())
+ 
 ```
