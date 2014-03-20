@@ -6,7 +6,7 @@ Gluish
 Some glue around [luigi](https://github.com/spotify/luigi).
 
 Provides a base class, that autogenerates its output filenames based on some
-tag, classname and parameters.
+base path, a tag, the classname and the significant parameters.
 
 Additionally, provide some smaller utilities, like a TSV format, a benchmark
 decorator and some task templates.
@@ -44,10 +44,10 @@ version of the significant parameters.
 
 ```python
 
-    task = RealTask()
-    task.output().path
-    # would be something like this on OS X:
-    # /var/folders/jy/g_b2kpwx0850/T/just-a-test/RealTask/date-1970-01-01.tsv
+task = RealTask()
+task.output().path
+# would be something like this on OS X:
+# /var/folders/jy/g_b2kpwx0850/T/just-a-test/RealTask/date-1970-01-01.tsv
 
 ```
 
