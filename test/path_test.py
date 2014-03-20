@@ -70,6 +70,7 @@ class PathTest(unittest.TestCase):
 
         pathlist = list(findfiles(directory))
         self.assertEquals(3, len(pathlist))
+        self.assertEquals(['1.jpg', '2-1.txt', '2-2.txt'], map(os.path.basename, pathlist))
         self.assertEquals('{}/1.jpg'.format(directory), pathlist[0])
         self.assertEquals('{}/2-1.txt'.format(subdir), pathlist[1])
         self.assertEquals('{}/2-2.txt'.format(subdir), pathlist[2])
