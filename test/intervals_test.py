@@ -1,13 +1,18 @@
 # coding: utf-8
 
+"""
+Test intervals.
+"""
+
 from gluish.intervals import (daily, weekly, biweekly, monthly, quarterly,
                               semiyearly, yearly)
 import datetime
 import unittest
 
 class IntervalsTest(unittest.TestCase):
-
+    """ Test intervals. """
     def test_intervals(self):
+        """ Basic intervals tests. """
         self.assertEquals(
             datetime.date(2000, 12, 3),
             daily(datetime.date(2000, 12, 3)))

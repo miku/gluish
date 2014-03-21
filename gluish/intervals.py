@@ -12,26 +12,28 @@ Usage:
 
 import datetime
 
-def daily(d=datetime.date.today()):
-    return d
+def daily(date=datetime.date.today()):
+    """ just pass on the given date """
+    return date
 
-def weekly(d=datetime.date.today()):
-    return d - datetime.timedelta(days=d.weekday())
+def weekly(date=datetime.date.today()):
+    """ weeks start at Monday """
+    return date - datetime.timedelta(days=date.weekday())
 
-def biweekly(d=datetime.date.today()):
+def biweekly(date=datetime.date.today()):
     """ every two weeks """
-    return datetime.date(d.year, d.month, 1 if d.day < 15 else 15)
+    return datetime.date(date.year, date.month, 1 if date.day < 15 else 15)
 
-def monthly(d=datetime.date.today()):
+def monthly(date=datetime.date.today()):
     """ Take a date object and return the first day of the month. """
-    return datetime.date(d.year, d.month, 1)
+    return datetime.date(date.year, date.month, 1)
 
-def quarterly(d=datetime.date.today()):
+def quarterly(date=datetime.date.today()):
     """ 1/1, 4/1, 7/1, 10/1 """
-    return datetime.date(d.year, ((d.month - 1)//3) * 3 + 1, 1)
+    return datetime.date(date.year, ((date.month - 1)//3) * 3 + 1, 1)
 
-def semiyearly(d=datetime.date.today()):
-    return datetime.date(d.year, 1 if d.day < 7 else 7, 1)
+def semiyearly(date=datetime.date.today()):
+    return datetime.date(date.year, 1 if date.day < 7 else 7, 1)
 
-def yearly(d=datetime.date.today()):
-    return datetime.date(d.year, 1, 1)
+def yearly(date=datetime.date.today()):
+    return datetime.date(date.year, 1, 1)
