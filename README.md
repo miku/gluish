@@ -125,7 +125,7 @@ class SomeWork(luigi.Task):
 Development
 -----------
 
-External dependencies:
+System package dependencies:
 
 * Ubuntu: libmysqlclient-dev
 * CentOS: mysql-devel
@@ -137,3 +137,4 @@ Setup:
     $ mkvirtualenv gluish
     $ pip install -r requirements.txt
 	$ nosetests
+
