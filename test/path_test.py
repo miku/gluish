@@ -18,7 +18,7 @@ class PathTest(unittest.TestCase):
         with self.assertRaises(OSError) as context:
             os.unlink(path)
         self.assertEquals(errno.ENOENT, context.exception.errno)
-        
+
         exception_raised = False
         try:
             unlink(path)
@@ -68,9 +68,10 @@ class PathTest(unittest.TestCase):
         touch(os.path.join(subdir, '2-1.txt'))
         touch(os.path.join(subdir, '2-2.txt'))
 
-        pathlist = list(findfiles(directory))
+        pathlist = sorted(list(findfiles(directory)))
         self.assertEquals(3, len(pathlist))
-        self.assertEquals(['1.jpg', '2-1.txt', '2-2.txt'], map(os.path.basename, pathlist))
+        self.assertEquals(['1.jpg', '2-1.txt', '2-2.txt'],
+						  map(os.path.basename, pathlist))
         self.assertEquals('{}/1.jpg'.format(directory), pathlist[0])
         self.assertEquals('{}/2-1.txt'.format(subdir), pathlist[1])
         self.assertEquals('{}/2-2.txt'.format(subdir), pathlist[2])
