@@ -2,8 +2,7 @@
 
 """
 Example of a small pipeline that downloads a couple of newspaper frontpages,
-extracts the text with a command line tool (pdftotext), creates a newline
-delimited json and indexes it into elasticsearch (version 1.0+).
+creates a newline delimited json and indexes it into elasticsearch (version 1.0+).
 """
 
 # pylint: disable=F0401
