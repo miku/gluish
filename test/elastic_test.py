@@ -7,7 +7,6 @@ Unit test for ES indexing task. Does not require ES to run.
 from gluish.elastic import ESIndexTask
 import elasticsearch
 import unittest
-import requests
 
 
 class ESTestTask(ESIndexTask):
