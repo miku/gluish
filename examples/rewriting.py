@@ -4,6 +4,7 @@
 Parameter value rewriting example.
 """
 
+from __future__ import print_function
 from gluish.task import BaseTask
 import datetime
 import luigi
@@ -22,6 +23,7 @@ class SomeTask(ExampleBaseTask):
     date = luigi.DateParameter(default=datetime.date.today())
 
     def output(self):
+        #pylint: disable=E1101
         cbmap = {'date': lambda obj: datetime.date(self.date.year,
                                                    self.date.month, 1)}
         return luigi.LocalTarget(path=self.path(cbmap=cbmap))
