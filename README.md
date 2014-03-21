@@ -89,7 +89,7 @@ class TabularConsumer(DefaultTask):
     date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
     def requires(self):
         return TabularSource()
-    
+
     def run(self):
         with self.input().open() as handle:
             for row in handle.iter_tsv(cols=('id', 'greeting', 'greetee'))
@@ -98,7 +98,7 @@ class TabularConsumer(DefaultTask):
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
- 
+
 ```
 
 A benchmark decorator
@@ -119,3 +119,21 @@ class SomeWork(luigi.Task):
     def complete(self):
         return False
 ```
+
+
+
+Development
+-----------
+
+External dependencies:
+
+* Ubuntu: libmysqlclient-dev
+* CentOS: mysql-devel
+
+Setup:
+
+    $ git clone git@github.com:miku/gluish.git
+    $ cd gluish
+    $ mkvirtualenv gluish
+    $ pip install -r requirements.txt
+	$ nosetests
