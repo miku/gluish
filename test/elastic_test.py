@@ -21,7 +21,7 @@ class ElasticTest(unittest.TestCase):
     """ ES tests. """
 
     def test_elastic(self):
-        """ Tests w/o integration. """
+        """ Tests w/o integration. Might produce weird output on OS X. """
         es = elasticsearch.Elasticsearch()
         task = ESTestTask()
         self.assertEquals({}, task.settings)
