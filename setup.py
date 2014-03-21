@@ -10,8 +10,6 @@ Additionally, provide some smaller utilities, like a TSV format, a benchmark
 decorator and some task templates.
 """
 
-import os
-
 try:
     from setuptools import setup
 except:
@@ -19,8 +17,9 @@ except:
 
 
 setup(name='gluish',
-      version='0.1.0',
+      version='0.1.1',
       description='Utils around Luigi.',
+      url='https://github.com/miku/gluish',
       author='Martin Czygan',
       author_email='martin.czygan@gmail.com',
       packages=[
