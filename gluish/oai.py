@@ -39,7 +39,7 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
     params = {'from': begin, 'until': end,
               'metadataPrefix': prefix, 'set': collection,
               'verb': verb}
-    params = {k:v for k,v in params.iteritems() if v}
+    params = dict([(k, v) for k, v in params.iteritems() if v])
 
     # first request with all params
     full_url = '%s?%s' % (url, urllib.urlencode(params))
@@ -85,14 +85,14 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
         full_url = '%s?%s' % (url, urllib.urlencode(params))
         path = os.path.join(directory, "%s.%s" % (
                             random_string(length=16), ext))
-        
+
         retry = 0
         while True:
             if retry >= max_retries:
                 raise RuntimeError("Max retries (%s) exceeded: %s" % (
                                    max_retries, full_url))
             try:
-                download(url=full_url, filename=path)                
+                download(url=full_url, filename=path)
                 break
             except RuntimeError as err:
                 retry += 1

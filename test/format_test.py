@@ -16,7 +16,7 @@ class FormatTest(unittest.TestCase):
 
     def test_iter_tsv(self):
         path = tempfile.mktemp()
-        
+
         with open(path, 'w') as handle:
             write_tsv(handle, 'A', 'B', 'C')
 
@@ -32,8 +32,12 @@ class FormatTest(unittest.TestCase):
             self.assertEqual(row.c, 'C')
 
         with open(path) as handle:
-            with self.assertRaises(TypeError):
+            exception_raised = False
+            try:
                 row = iter_tsv(handle, cols=('a', 'b')).next()
+            except TypeError:
+                exception_raised = True
+            self.assertTrue(exception_raised)
 
         with open(path) as handle:
             row = iter_tsv(handle, cols=('a', 0, 0)).next()
@@ -58,7 +62,7 @@ class TSVFormatTest(unittest.TestCase):
             self.assertTrue(hasattr(handle, 'write_tsv'))
         with target.open() as handle:
             self.assertTrue(hasattr(handle, 'iter_tsv'))
-        
+
 
 if __name__ == '__main__':
     unittest.main()

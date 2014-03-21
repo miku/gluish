@@ -15,9 +15,13 @@ class PathTest(unittest.TestCase):
         path = tempfile.mktemp()
         self.assertFalse(os.path.exists(path))
 
-        with self.assertRaises(OSError) as context:
+        exception_raised = False
+        try:
             os.unlink(path)
-        self.assertEquals(errno.ENOENT, context.exception.errno)
+        except OSError as err:
+            exception_raised = True
+            self.assertEquals(errno.ENOENT, err.errno)
+        self.assertTrue(exception_raised)
 
         exception_raised = False
         try:
@@ -57,9 +61,9 @@ class PathTest(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
 
     def test_which(self):
-        self.assertIsNotNone(which('ls'))
+        self.assertTrue(which('ls') is not None)
         self.assertEquals('/bin/ls', which('ls'))
-        self.assertIsNone(which('veryunlikely1234'))
+        self.assertTrue(which('veryunlikely1234') is None)
 
     def test_findfiles(self):
         directory = tempfile.mkdtemp()
@@ -71,14 +75,14 @@ class PathTest(unittest.TestCase):
         pathlist = sorted(list(findfiles(directory)))
         self.assertEquals(3, len(pathlist))
         self.assertEquals(['1.jpg', '2-1.txt', '2-2.txt'],
-						  map(os.path.basename, pathlist))
-        self.assertEquals('{}/1.jpg'.format(directory), pathlist[0])
-        self.assertEquals('{}/2-1.txt'.format(subdir), pathlist[1])
-        self.assertEquals('{}/2-2.txt'.format(subdir), pathlist[2])
+                          map(os.path.basename, pathlist))
+        self.assertEquals('{0}/1.jpg'.format(directory), pathlist[0])
+        self.assertEquals('{0}/2-1.txt'.format(subdir), pathlist[1])
+        self.assertEquals('{0}/2-2.txt'.format(subdir), pathlist[2])
 
         pathlist = list(findfiles(directory, fun=lambda path: path.endswith('jpg')))
         self.assertEquals(1, len(pathlist))
-        self.assertEquals('{}/1.jpg'.format(directory), pathlist[0])
+        self.assertEquals('{0}/1.jpg'.format(directory), pathlist[0])
 
     def test_fileage(self):
         """ Assume we can `touch` within 2000ms. """
