@@ -74,7 +74,7 @@ class ESIndexTask(luigi.Task):
             Also, the default implementation might take too long,
             since it has to iterate over the whole `self.docs` once.
         """
-        return len(list(self.docs()))
+        return 0 # len(list(self.docs()))
 
     def indexed(self):
         """
@@ -83,7 +83,7 @@ class ESIndexTask(luigi.Task):
         """
         es = elasticsearch.Elasticsearch(hosts=self.hosts)
         result = es.count(index=self.index, doc_type=self.doc_type)
-        count = result.get('count', 'NA')
+        count = result.get('count', -1)
         return count
 
     @abc.abstractmethod
@@ -112,6 +112,7 @@ class ESIndexTask(luigi.Task):
             return False
         if not self.expected() == self.indexed():
             return False
+        return True
 
     def representative(self):
         """
