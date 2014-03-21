@@ -9,15 +9,11 @@ tag, classname and parameters.
 Additionally, provide some smaller utilities, like a TSV format, a benchmark
 decorator and some task templates.
 """
-
-try:
-    from setuptools import setup
-except:
-    from distutils.core import setup
+from setuptools import setup
 
 
 setup(name='gluish',
-      version='0.1.1',
+      version='0.1.2',
       description='Utils around Luigi.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
