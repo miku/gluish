@@ -97,18 +97,18 @@ class BaseTask(luigi.Task):
                             filename)
 
 
-class MockTask(luigi.Task):
+class MockTask(BaseTask):
     """ A mock task object. Read fixture from path and that's it. """
-    path = luigi.Parameter()
+    fixture = luigi.Parameter()
 
     def content(self):
         """ Return the content of the file in path. """
-        with open(self.path) as handle:
+        with open(self.fixture) as handle:
             return handle.read()
 
     def run(self):
         """ Just copy the fixture, so we have some output. """
-        luigi.File(path=self.path).copy(self.output().path)
+        luigi.File(path=self.fixture).copy(self.output().path)
 
     def output(self):
         """ Mock output. """
