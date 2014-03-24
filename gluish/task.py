@@ -8,7 +8,7 @@ Default task
 A default task, that covers file system layout.
 
 """
-# pylint: disable=F0401,E1101
+# pylint: disable=F0401,E1101,E1103
 from luigi.task import id_to_name_and_params
 import hashlib
 import luigi
@@ -95,4 +95,22 @@ class BaseTask(luigi.Task):
 
         return os.path.join(unicode(self.BASE), unicode(self.TAG), task_name,
                             filename)
+
+
+class MockTask(luigi.Task):
+    """ A mock task object. Read fixture from path and that's it. """
+    path = luigi.Parameter()
+
+    def content(self):
+        """ Return the content of the file in path. """
+        with open(self.path) as handle:
+            return handle.read()
+
+    def run(self):
+        """ Just copy the fixture, so we have some output. """
+        luigi.File(path=self.path).copy(self.output().path)
+
+    def output(self):
+        """ Mock output. """
+        return luigi.LocalTarget(path=self.path(digest=True))
 
