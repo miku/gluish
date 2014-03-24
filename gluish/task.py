@@ -13,6 +13,7 @@ from luigi.task import id_to_name_and_params
 import hashlib
 import luigi
 import os
+import tempfile
 
 
 def nearest(obj):
@@ -25,13 +26,18 @@ def nearest(obj):
     return obj.nearest() if callable(obj.nearest) else obj.nearest
 
 
+def default_base(envvar='TASKHOME'):
+    """ Let the environment control the base path for all tasks. """
+    return os.environ.get(envvar, tempfile.gettempdir())
+
+
 class BaseTask(luigi.Task):
     """
     A base task with a `path` method. BASE should be set to the root
     directory of all tasks. TAG is a shard for a group of related tasks.
     """
-    BASE = NotImplemented
-    TAG = NotImplemented
+    BASE = default_base()
+    TAG = 'default'
 
     def path(self, filename=None, ext='tsv', digest=False, cbmap=None):
         """
