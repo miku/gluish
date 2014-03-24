@@ -8,7 +8,7 @@ Default task
 A default task, that covers file system layout.
 
 """
-
+# pylint: disable=F0401,E1101
 from luigi.task import id_to_name_and_params
 import hashlib
 import luigi
