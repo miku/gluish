@@ -25,6 +25,14 @@ class sqlite3db(object):
             query = cursor.execute('SELECT * FROM items')
             result = query.fetchall()
 
+    For speedy, but memory hungry inserts you can first create a complete db
+    in memory and then copy it to disk. 70000 INSERT/s have been observed, more
+    is probably possible with faster IO.
+
+        with sqlite3db(':memory:', copy_on_exit='/tmp/test.db') as cursor:
+            cursor.execute("CREATE TABLE test (i INTEGER, t TEXT)")
+            cursor.execute("INSERT INTO test VALUES (?, ?)",
+                           (1, "Hello World"))
 
     """
     def __init__(self, path, copy_on_exit=None):
@@ -46,7 +54,6 @@ class sqlite3db(object):
             sqlitebck.copy(self.conn, target)
             target.close()
         self.conn.close()
-
 
 
 class mysqldb(object):
