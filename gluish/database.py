@@ -4,8 +4,14 @@
 Helper for databases.
 """
 
-from MySQLdb.cursors import SSCursor
-import MySQLdb
+import logging
+
+try:
+    from MySQLdb.cursors import SSCursor
+    import MySQLdb
+except ImportError:
+    logging.warn("MySQLdb seems missing: limited functionality.")
+
 import sqlite3
 import urlparse
 
