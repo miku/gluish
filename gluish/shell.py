@@ -37,9 +37,8 @@ def shellout(template, **kwargs):
 
     """
     preserve_spaces = kwargs.get('preserve_spaces', False)
-    stopover = tempfile.mktemp(prefix='gluish')
     if not 'output' in kwargs:
-        kwargs.update({'output': stopover})
+        kwargs.update({'output': tempfile.mktemp(prefix='gluish')})
     ignoremap = kwargs.get('ignoremap', {})
     command = template.format(**kwargs)
     if not preserve_spaces:
