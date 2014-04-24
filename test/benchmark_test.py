@@ -14,5 +14,5 @@ class BenchmarkTest(unittest.TestCase):
         """ Test timer timeframes are reasonable. """
         with Timer() as timer:
             pass
-        self.assertTrue(0 < timer.elapsed_s < 1)
-        self.assertTrue(0 < timer.elapsed_ms < 100)
+        self.assertTrue(0 <= timer.elapsed_s <= 1)
+        self.assertTrue(0 <= timer.elapsed_ms < 100)
