@@ -109,8 +109,7 @@ def which(program):
 
     return None
 
-
-def findfiles(directory='.', fun=None):
+def iterfiles(directory='.', fun=None):
     """
     Yield paths below a directory, optionally filter the path through a function
     given in `fun`.
@@ -123,6 +122,8 @@ def findfiles(directory='.', fun=None):
             if fun(path):
                 yield path
 
+# backwards compat
+findfiles = iterfiles
 
 def copyregions(src, dst, seekmap):
     """
