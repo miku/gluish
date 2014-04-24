@@ -120,6 +120,28 @@ class SomeWork(luigi.Task):
 ```
 
 
+A CopyToIndex task template for Elasticsearch
+---------------------------------------------
+
+Modeled after [luigi.contrib.CopyToTable](https://github.com/spotify/luigi/blob/01514d4559901ec62432cd13c48d9431b02433be/luigi/contrib/rdbms.py#L13).
+
+
+    from gluish.esindex import CopyToIndex
+    import luigi
+
+    class ExampleIndex(CopyToIndex):
+        host = 'localhost'
+        port = 9200
+        index = 'example'
+        doc_type = 'default'
+
+        def docs(self):
+            return [{'_id': 1, 'title': 'An example document.'}]
+
+    if __name__ == '__main__':
+        task = ExampleIndex()
+        luigi.build([task], local_scheduler=True)
+
 
 Development
 -----------
