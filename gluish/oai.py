@@ -5,8 +5,7 @@ OAI-PHM harvesting helper.
 """
 
 from gluish.path import unlink
-from gluish.shell import shellout
-from gluish.utils import download, random_string
+from gluish.utils import shellout, download, random_string
 import BeautifulSoup
 import logging
 import os

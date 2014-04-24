@@ -5,20 +5,26 @@ Various utilities.
 """
 
 from dateutil import relativedelta
-from gluish.shell import shellout
+from gluish.colors import cyan
 import collections
 import itertools
+import logging
 import random
 import re
 import string
+import subprocess
+import tempfile
+
+logger = logging.getLogger('gluish')
 
 
 class DotDict(dict):
-    __getattr__= dict.__getitem__
+    """ Access dictionary values via dot notation. """
+    __getattr__ = dict.__getitem__
 
-    def __init__(self, d):
+    def __init__(self, dictionary):
         self.update(**dict((k, self.parse(v))
-                           for k, v in d.iteritems()))
+                           for k, v in dictionary.iteritems()))
 
     @classmethod
     def parse(cls, value):
@@ -119,5 +125,49 @@ def unwrap(s):
     """
     if not isinstance(s, basestring):
         return s
-    s = re.sub(r'\s+', ' ', s.strip().replace('\n', ''))
+    s = re.sub(r'\s+', ' ', s.strip().replace('\n', ' '))
     return s
+
+
+def shellout(template, **kwargs):
+    """
+    Takes a shell command template and executes it. The template must use
+    the new (2.6+) format mini language. `kwargs` must contain any defined
+    placeholder, only `output` is optional.
+    Raises RuntimeError on nonzero exit codes.
+
+    Simple template:
+
+        wc -l < {input} > {output}
+
+    Quoted curly braces:
+
+        ps ax|awk '{{print $1}}' > {output}
+
+    Usage with luigi:
+
+        ...
+        tmp = shellout('wc -l < {input} > {output}', input=self.input().fn)
+        luigi.File(tmp).move(self.output.fn())
+        ....
+
+    """
+    preserve_spaces = kwargs.get('preserve_spaces', False)
+    if not 'output' in kwargs:
+        kwargs.update({'output': tempfile.mktemp(prefix='gluish')})
+    ignoremap = kwargs.get('ignoremap', {})
+    command = template.format(**kwargs)
+    if not preserve_spaces:
+        command = re.sub('[ \n]+', ' ', command)
+    logger.debug(cyan(command))
+    code = subprocess.call([command], shell=True)
+    if not code == 0:
+        if code in ignoremap:
+            logger.info("Ignoring error via ignoremap: %s" % (
+                        ignoremap.get(code)))
+        else:
+            logger.error('%s: %s' % (command, code))
+            error = RuntimeError('%s exitcode: %s' % (command, code))
+            error.code = code
+            raise error
+    return kwargs.get('output')

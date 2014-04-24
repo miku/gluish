@@ -8,8 +8,7 @@ Some glue around [luigi](https://github.com/spotify/luigi).
 Provides a base class, that autogenerates its output filenames based on
 * some base path,
 * a tag,
-* the classname and the
-* significant parameters.
+* the task id (the classname and the significant parameters)
 
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
@@ -121,6 +120,29 @@ class SomeWork(luigi.Task):
 ```
 
 
+A task template for Elasticsearch
+---------------------------------
+
+Modeled after [luigi.contrib.CopyToTable](https://github.com/spotify/luigi/blob/01514d4559901ec62432cd13c48d9431b02433be/luigi/contrib/rdbms.py#L13).
+
+```python
+from gluish.esindex import CopyToIndex
+import luigi
+
+class ExampleIndex(CopyToIndex):
+    host = 'localhost'
+    port = 9200
+    index = 'example'
+    doc_type = 'default'
+    purge_existing_index = True
+
+    def docs(self):
+        return [{'_id': 1, 'title': 'An example document.'}]
+
+if __name__ == '__main__':
+    task = ExampleIndex()
+    luigi.build([task], local_scheduler=True)
+```
 
 Development
 -----------

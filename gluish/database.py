@@ -4,9 +4,16 @@
 Helper for databases.
 """
 
-from MySQLdb.cursors import SSCursor
-import MySQLdb
+import logging
+
+try:
+    from MySQLdb.cursors import SSCursor
+    import MySQLdb
+except ImportError:
+    logging.warn("MySQLdb seems missing: limited functionality.")
+
 import sqlite3
+import sqlitebck
 import urlparse
 
 
@@ -17,11 +24,22 @@ class sqlite3db(object):
         with sqlite3db('/tmp/test.db') as cursor:
             query = cursor.execute('SELECT * FROM items')
             result = query.fetchall()
+
+    For speedy, but memory hungry inserts you can first create a complete db
+    in memory and then copy it to disk. 70000 INSERT/s have been observed, more
+    is probably possible with faster IO.
+
+        with sqlite3db(':memory:', copy_on_exit='/tmp/test.db') as cursor:
+            cursor.execute("CREATE TABLE test (i INTEGER, t TEXT)")
+            cursor.execute("INSERT INTO test VALUES (?, ?)",
+                           (1, "Hello World"))
+
     """
-    def __init__(self, path):
+    def __init__(self, path, copy_on_exit=None):
         self.path = path
         self.conn = None
         self.cursor = None
+        self.copy_on_exit = copy_on_exit
 
     def __enter__(self):
         self.conn = sqlite3.connect(self.path)
@@ -31,6 +49,10 @@ class sqlite3db(object):
 
     def __exit__(self, exc_class, exc, traceback):
         self.conn.commit()
+        if self.copy_on_exit:
+            target = sqlite3.connect(self.copy_on_exit)
+            sqlitebck.copy(self.conn, target)
+            target.close()
         self.conn.close()
 
 
