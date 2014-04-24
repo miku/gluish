@@ -8,8 +8,7 @@ Some glue around [luigi](https://github.com/spotify/luigi).
 Provides a base class, that autogenerates its output filenames based on
 * some base path,
 * a tag,
-* the classname and the
-* significant parameters.
+* the task id (the classname and the significant parameters)
 
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
