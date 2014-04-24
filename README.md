@@ -134,6 +134,7 @@ class ExampleIndex(CopyToIndex):
     port = 9200
     index = 'example'
     doc_type = 'default'
+    purge_existing_index = True
 
     def docs(self):
         return [{'_id': 1, 'title': 'An example document.'}]
