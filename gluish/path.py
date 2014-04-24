@@ -158,14 +158,8 @@ def random_tmp_dir(create=False, prefix='gluish'):
     """
     Same as random path, just with the option to create a directory, when
     `create` is `True`.
-
-    Just use:
-
-        tempfile.mkdtemp(prefix='gluish-')
-
-    instead.
-
     """
+    warnings.warn("deprecated", DeprecationWarning)
     path = tempfile.mkdtemp(prefix='gluish-')
     if create and not os.path.exists(path):
         os.makedirs(path)
