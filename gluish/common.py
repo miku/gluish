@@ -3,15 +3,15 @@
 """
 Tasks that can be used out of the box.
 """
-
+# pylint: disable=F0401,W0232,R0903,E1101
 from gluish.benchmark import timed
 from gluish.format import TSV
-from gluish.shell import shellout
-from gluish.task import BaseTask
 from gluish.path import findfiles, which
-from gluish.utils import random_string
+from gluish.task import BaseTask
+from gluish.utils import shellout, random_string
 import collections
 import elasticsearch
+import json
 import luigi
 import os
 import tempfile
@@ -35,6 +35,7 @@ class Indices(luigi.Task):
 
     @timed
     def run(self):
+        """ Write info about indices to stdout. """
         es = elasticsearch.Elasticsearch([{'host': self.host,
                                            'port': self.port}])
         stats = es.indices.stats()
@@ -68,7 +69,8 @@ class SplitFile(CommonTask):
 
         prefix = random_string()
         shellout("cd {taskdir} && split -l {lines} {input} {prefix}",
-                 taskdir=taskdir, lines=lines, input=self.filename, prefix=prefix)
+                 taskdir=taskdir, lines=lines, input=self.filename,
+                 prefix=prefix)
 
         with self.output().open('w') as output:
             for path in sorted(findfiles(taskdir)):
@@ -89,6 +91,7 @@ class Executable(luigi.Task):
     message = luigi.Parameter(default="")
 
     def run(self):
+        """ Only run if, task is not complete. """
         raise RuntimeError('External app %s required.\n%s' % (self.name,
                            self.message))
 
@@ -103,6 +106,7 @@ class LineCount(luigi.Task):
 
     @timed
     def run(self):
+        """ wc -l wrapped. """
         tmp = shellout("wc -l < {input} > {output}", input=self.input().fn)
         luigi.File(tmp).move(self.output().fn)
 
