@@ -29,7 +29,7 @@ class CommonTask(BaseTask):
     TAG = 'common'
 
 
-class Indices(luigi.Task):
+class Indices(CommonTask):
     """
     List all ES indices and doc counts.
     """
@@ -84,7 +84,7 @@ class SplitFile(CommonTask):
         return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
 
 
-class Executable(luigi.Task):
+class Executable(CommonTask):
     """
     Checks, whether an external executable is available. This task will consider
     itself complete, only if the executable `name` is found in PATH on the
@@ -102,7 +102,7 @@ class Executable(luigi.Task):
         return which(self.name) is not None
 
 
-class LineCount(luigi.Task):
+class LineCount(CommonTask):
     """ Wrapped wc -l. """
     def requires(self):
         raise NotImplementedError("Should be some file with lines to count.")
