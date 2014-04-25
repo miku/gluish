@@ -1,13 +1,19 @@
 # coding: utf-8
+"""
+Common tests.
+"""
 
-from gluish.task import BaseTask
-from gluish.common import LineCount, Executable, SplitFile
-from gluish.utils import random_string
+# pylint:disable=F0401,C0111,W0232,E1101
+from gluish.common import LineCount, Executable, SplitFile, OAIHarvestChunk
 from gluish.path import unlink
-import unittest
+from gluish.task import BaseTask
+from gluish.utils import random_string
+import datetime
+import luigi
 import os
 import tempfile
-import luigi
+import unittest
+import BeautifulSoup
 
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
@@ -16,7 +22,7 @@ class TestTask(BaseTask):
     TAG = 't'
 
 
-class L(TestTask, luigi.ExternalTask):
+class External(TestTask, luigi.ExternalTask):
     filename = luigi.Parameter(default='l-1.txt')
     def output(self):
         print(os.path.join(FIXTURES, self.filename))
@@ -26,7 +32,7 @@ class L(TestTask, luigi.ExternalTask):
 class ConcreteLineCount(TestTask, LineCount):
     filename = luigi.Parameter(default='l-1.txt')
     def requires(self):
-        return L(filename=self.filename)
+        return External(filename=self.filename)
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
@@ -74,3 +80,24 @@ class SplitFileTest(unittest.TestCase):
         with open(original) as handle:
             self.assertEquals(content, handle.read())
 
+
+class SampleHarvestChunk(OAIHarvestChunk):
+    """ Example harvesting. Will go out to the real server. """
+    url = luigi.Parameter(default="http://oai.bnf.fr/oai2/OAIHandler")
+    begin = luigi.DateParameter(default=datetime.date(2013, 1, 1))
+    end = luigi.DateParameter(default=datetime.date(2013, 2, 1))
+    prefix = luigi.Parameter(default="oai_dc")
+    collection = luigi.Parameter(default="gallica:typedoc:partitions")
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path())
+
+
+class OAIHarvestChunkTest(unittest.TestCase):
+    def test_harvest(self):
+        task = SampleHarvestChunk()
+        luigi.build([task], local_scheduler=True)
+        want = BeautifulSoup.BeautifulStoneSoup(
+            open(os.path.join(FIXTURES, 'sample_bnf_oai_response.xml')).read())
+        got = BeautifulSoup.BeautifulStoneSoup(task.output().open().read())
+        self.assertEquals(want.prettify(), got.prettify())

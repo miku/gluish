@@ -6,9 +6,12 @@ Tasks that can be used out of the box.
 # pylint: disable=F0401,W0232,R0903,E1101
 from gluish.benchmark import timed
 from gluish.format import TSV
-from gluish.path import findfiles, which
+from gluish.oai import oai_harvest
+from gluish.path import iterfiles, which
 from gluish.task import BaseTask
 from gluish.utils import shellout, random_string
+import BeautifulSoup
+import datetime
 import collections
 import elasticsearch
 import json
@@ -73,7 +76,7 @@ class SplitFile(CommonTask):
                  prefix=prefix)
 
         with self.output().open('w') as output:
-            for path in sorted(findfiles(taskdir)):
+            for path in sorted(iterfiles(taskdir)):
                 if os.path.basename(path).startswith(prefix):
                     output.write_tsv(path)
 
@@ -112,3 +115,38 @@ class LineCount(luigi.Task):
 
     def output(self):
         raise NotImplementedError()
+
+
+class OAIHarvestChunk(CommonTask):
+    """ Template task to harvest a piece of OAI. """
+
+    begin = luigi.DateParameter(default=datetime.date.today())
+    end = luigi.DateParameter(default=datetime.date.today())
+    prefix = luigi.Parameter(default="marc21")
+    url = luigi.Parameter(default="http://oai.bnf.fr/oai2/OAIHandler")
+    collection = luigi.Parameter(default=None)
+
+    def run(self):
+        stopover = tempfile.mkdtemp(prefix='gluish-')
+        oai_harvest(url=self.url, begin=self.begin, end=self.end,
+                    prefix=self.prefix, directory=stopover,
+                    collection=self.collection)
+
+        with self.output().open('w') as output:
+            output.write("""<collection
+                xmlns="http://www.openarchives.org/OAI/2.0/"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            """)
+            for path in iterfiles(stopover):
+                with open(path) as handle:
+                    soup = BeautifulSoup.BeautifulStoneSoup(handle.read())
+                    for record in soup.findAll('record'):
+                        output.write(str(record)) # or unicode?
+            output.write('</collection>\n')
+
+    def output(self):
+        raise NotImplementedError()
+
+
+
+
