@@ -127,5 +127,5 @@ class FTPMirrorTest(unittest.TestCase):
         task = MirrorTask()
         luigi.build([task], local_scheduler=True)
         got = task.output().open().read()
-        self.assertTrue('cs00-021.pdf' in got,
+        self.assertTrue('cs00-02.pdf' in got,
                         msg='Task output was:\n%s' % got)
