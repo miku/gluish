@@ -4,7 +4,8 @@ Common tests.
 """
 
 # pylint:disable=F0401,C0111,W0232,E1101
-from gluish.common import LineCount, Executable, SplitFile, OAIHarvestChunk
+from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
+                           FTPMirror)
 from gluish.path import unlink
 from gluish.task import BaseTask
 from gluish.utils import random_string
@@ -101,3 +102,30 @@ class OAIHarvestChunkTest(unittest.TestCase):
             open(os.path.join(FIXTURES, 'sample_bnf_oai_response.xml')).read())
         got = BeautifulSoup.BeautifulStoneSoup(task.output().open().read())
         self.assertEquals(want.prettify(), got.prettify())
+
+
+class MirrorTask(TestTask):
+    """ Indicator make this task run on each test run. """
+    indicator = luigi.Parameter(default=random_string())
+
+    def requires(self):
+        return FTPMirror(host='ftp.cs.brown.edu',
+            username='anonymous',
+            password='anonymous',
+            pattern='*02*pdf',
+            base='/pub/techreports/00')
+
+    def run(self):
+        luigi.File(self.input().path).move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path())
+
+
+class FTPMirrorTest(unittest.TestCase):
+    def test_ftp_mirror(self):
+        task = MirrorTask()
+        luigi.build([task], local_scheduler=True)
+        got = task.output().open().read()
+        self.assertTrue('cs00-021.pdf' in got,
+                        msg='Task output was:\n%s' % got)

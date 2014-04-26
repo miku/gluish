@@ -6,17 +6,19 @@ Tasks that can be used out of the box.
 # pylint: disable=F0401,W0232,R0903,E1101
 from gluish.benchmark import timed
 from gluish.format import TSV
+from gluish.intervals import daily
 from gluish.oai import oai_harvest
 from gluish.path import iterfiles, which
 from gluish.task import BaseTask
 from gluish.utils import shellout, random_string
 import BeautifulSoup
-import datetime
 import collections
+import datetime
 import elasticsearch
 import json
 import luigi
 import os
+import pipes
 import tempfile
 
 
@@ -148,5 +150,42 @@ class OAIHarvestChunk(CommonTask):
         return luigi.LocalTarget(path=self.path(ext='xml', digest=True))
 
 
+class FTPMirror(CommonTask):
+    """
+    A generic FTP directory sync. Outsource to lftp.
+    """
+    indicator = luigi.Parameter(default=str(daily()))
+    host = luigi.Parameter()
+    username = luigi.Parameter()
+    password = luigi.Parameter()
+    pattern = luigi.Parameter(default='*', description="e.g. '*leip_*.zip'")
+    base = luigi.Parameter(default='/')
 
+    def requires(self):
+        return Executable(name='lftp')
 
+    def run(self):
+        target = os.path.join(os.path.dirname(self.output().path),
+                              '%s.dir' % (os.path.basename(self.output().path)))
+        if not os.path.exists(target):
+            os.makedirs(target)
+
+        command = """lftp -u {username},{password}
+        -e "set net:max-retries 5; set net:timeout 5; mirror --verbose=0
+        --only-newer -I {pattern} {base} {target}; exit" {host}"""
+
+        shellout(command, host=self.host, username=pipes.quote(self.username),
+                 password=pipes.quote(self.password),
+                 pattern=pipes.quote(self.pattern),
+                 target=pipes.quote(target),
+                 base=pipes.quote(self.base))
+
+        with self.output().open('w') as output:
+            for path in iterfiles(target):
+                output.write_tsv(path)
+
+    def output(self):
+        """ Per paramters and hours write a single file
+        """
+        return luigi.LocalTarget(path=self.path(digest=True, ext=''),
+                                 format=TSV)
