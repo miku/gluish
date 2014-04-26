@@ -154,7 +154,6 @@ class FTPMirror(CommonTask):
     """
     A generic FTP directory sync. Outsource to lftp.
     """
-    indicator = luigi.Parameter(default=str(daily()))
     host = luigi.Parameter()
     username = luigi.Parameter()
     password = luigi.Parameter()
