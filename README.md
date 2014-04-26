@@ -160,7 +160,7 @@ Setup:
 Coverage status
 ---------------
 
-As of 4a7ec26.
+As of 4a7ec26ae6680d880ae20bebd514aba70d801687.
 
     $ nosetests --verbose --with-coverage --cover-package gluish
     Name               Stmts   Miss  Cover   Missing
