@@ -145,7 +145,7 @@ class OAIHarvestChunk(CommonTask):
             output.write('</collection>\n')
 
     def output(self):
-        raise NotImplementedError()
+        return luigi.LocalTarget(path=self.path(ext='xml', digest=True))
 
 
 
