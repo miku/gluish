@@ -13,7 +13,6 @@ Provides a base class, that autogenerates its output filenames based on
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
 
-
 A basic task that knows its place
 ---------------------------------
 
@@ -105,7 +104,6 @@ A benchmark decorator
 
 Log some running times. Mostly useful in interactive mode.
 
-
 ```python
 from gluish.benchmark import timed
 
@@ -118,7 +116,6 @@ class SomeWork(luigi.Task):
     def complete(self):
         return False
 ```
-
 
 A task template for Elasticsearch
 ---------------------------------
@@ -158,5 +155,30 @@ Setup:
     $ cd gluish
     $ mkvirtualenv gluish
     $ pip install -r requirements.txt
-	$ nosetests
+    $ nosetests
 
+Coverage status
+---------------
+
+As of 4a7ec26.
+
+    $ nosetests --verbose --with-coverage --cover-package gluish
+    Name               Stmts   Miss  Cover   Missing
+    ------------------------------------------------
+    gluish                 4      0   100%
+    gluish.benchmark      32      3    91%   59-62
+    gluish.colors         14      4    71%   12, 20, 24, 32
+    gluish.common        103     18    83%   68, 72, 80-81, 83, 86, ...
+    gluish.database       50     18    64%   12, 69-76, 79-88, 91-94
+    gluish.esindex       105     71    32%   40-43, 62-66, 70-71, 77-86, ...
+    gluish.format         27      2    93%   69, 72
+    gluish.intervals      16      0   100%
+    gluish.oai            58     14    76%   83-99
+    gluish.parameter       5      0   100%
+    gluish.path           82     14    83%   25, 39-48, 101-102, 165
+    gluish.task           45      2    96%   95, 114
+    gluish.utils          80      3    96%   35, 127, 166
+    ------------------------------------------------
+    TOTAL                621    149    76%
+    ----------------------------------------------------------------------
+    Ran 33 tests in 0.269s
