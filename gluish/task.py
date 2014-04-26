@@ -91,7 +91,10 @@ class BaseTask(luigi.Task):
                 name = 'output'
             if digest:
                 name = hashlib.sha1(name).hexdigest()
-            filename = '{fn}.{ext}'.format(ext=ext, fn=name)
+            if not ext:
+                filename = '{fn}'.format(ext=ext, fn=name)
+            else:
+                filename = '{fn}.{ext}'.format(ext=ext, fn=name)
 
         return os.path.join(unicode(self.BASE), unicode(self.TAG), task_name,
                             filename)
