@@ -199,5 +199,4 @@ class FTPMirror(CommonTask):
     def output(self):
         """ Per paramters and hours write a single file
         """
-        return luigi.LocalTarget(path=self.path(digest=True, ext=''),
-                                 format=TSV)
+        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
