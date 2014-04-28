@@ -4,22 +4,23 @@
 OAI harvesting tests.
 """
 
+# pylint: disable=F0401,W0613
 from gluish.oai import oai_harvest
 import unittest
 import tempfile
 import random
 
-def download_first_request(url=None, filename=None):
+def download_first_request(url=None, filename=None, **kwargs):
     """ Initial download. """
     with open(filename, 'w') as output:
         output.write('some successful first response XML')
 
-def download_second_request(url=None, filename=None):
+def download_second_request(url=None, filename=None, **kwargs):
     """ Download XML with resumptiontoken. """
     with open(filename, 'w') as output:
         output.write('some successful second response XML')
 
-def download_failed(url=None, filename=None):
+def download_failed(url=None, filename=None, **kwargs):
     """ A failed download. """
     raise RuntimeError()
 

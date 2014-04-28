@@ -44,10 +44,9 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
     full_url = '%s?%s' % (url, urllib.urlencode(params))
     path = os.path.join(directory, '%s.%s' % (random_string(length=16), ext))
 
-
     for retry in range(max_retries):
         try:
-            download(url=full_url, filename=path)
+            download(url=full_url, filename=path, timeout=30)
             break
         except RuntimeError as err:
             logger.info('Retry %s on %s' % (retry, full_url))

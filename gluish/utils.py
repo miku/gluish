@@ -67,10 +67,11 @@ def nwise(iterable, n=2):
         piece = tuple(itertools.islice(i, n))
 
 
-def download(url=None, filename=None):
+def download(url=None, filename=None, timeout=60):
     """ Download a URL content to filename. """
-    shellout("""wget -q --retry-connrefused -O {output} '{url}' """,
-             url=url, output=filename)
+    shellout("""wget --timeout {timeout} -q --retry-connrefused
+                -O {output} '{url}' """, url=url, output=filename,
+                timeout=timeout)
 
 
 def date_range(start_date, end_date, increment, period):
