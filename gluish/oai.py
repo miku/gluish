@@ -55,21 +55,6 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
         raise RuntimeError('Max retries (%s) exceeded: %s' % (
                            max_retries, full_url))
 
-    retry = 0
-
-    # do the first request, without 'resumptiontoken'
-    while True:
-        if retry >= max_retries:
-            raise RuntimeError('Max retries (%s) exceeded: %s' % (
-                               max_retries, full_url))
-        try:
-            download(url=full_url, filename=path)
-            break
-        except RuntimeError as err:
-            retry += 1
-            logger.info('Retry #%s on %s' % (retry, full_url))
-            unlink(path)
-
     # any subsequent request uses 'resumptiontoken'
     while True:
         with open(path) as handle:
