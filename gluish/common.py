@@ -32,7 +32,7 @@ class CommonTask(BaseTask):
     A base class for common classes. These artefacts will be written to the
     systems tempdir.
     """
-    BASE = tempfile.gettempdir()
+    BASE = os.environ.get('GLUISH_DATA', tempfile.gettempdir())
     TAG = 'common'
 
 
