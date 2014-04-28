@@ -17,10 +17,14 @@ import datetime
 import elasticsearch
 import hashlib
 import json
+import logging
 import luigi
 import os
 import pipes
 import tempfile
+
+
+logger = logging.getLogger('gluish')
 
 
 class CommonTask(BaseTask):
@@ -189,6 +193,7 @@ class FTPMirror(CommonTask):
 
         with self.output().open('w') as output:
             for path in iterfiles(target):
+                logger.debug("Mirrored: %s" % path)
                 output.write_tsv(path)
 
     def output(self):
