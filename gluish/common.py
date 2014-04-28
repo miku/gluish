@@ -15,6 +15,7 @@ import BeautifulSoup
 import collections
 import datetime
 import elasticsearch
+import hashlib
 import json
 import luigi
 import os
@@ -159,13 +160,20 @@ class FTPMirror(CommonTask):
     password = luigi.Parameter()
     pattern = luigi.Parameter(default='*', description="e.g. '*leip_*.zip'")
     base = luigi.Parameter(default='/')
+    indicator = luigi.Parameter(default=random_string())
 
     def requires(self):
         return Executable(name='lftp')
 
     def run(self):
-        target = os.path.join(os.path.dirname(self.output().path),
-                              '%s.dir' % (os.path.basename(self.output().path)))
+        """ The indicator is always recreated, while the subdir
+        for a given (host, username, base, pattern) is just synced. """
+        base = os.path.dirname(self.output().path)
+        subdir = hashlib.sha1('{host}:{username}:{base}:{pattern}'.format(
+            host=self.host, username=self.username, base=self.base,
+            pattern=self.pattern)).hexdigest()
+        # target is the root of the mirror
+        target = os.path.join(base, subdir)
         if not os.path.exists(target):
             os.makedirs(target)
 
