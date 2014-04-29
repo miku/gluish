@@ -62,7 +62,7 @@ class PathTest(unittest.TestCase):
 
     def test_which(self):
         self.assertTrue(which('ls') is not None)
-        self.assertEquals('/bin/ls', which('ls'))
+        self.assertTrue(which('ls').endswith('bin/ls'))
         self.assertTrue(which('veryunlikely1234') is None)
 
     def test_findfiles(self):
