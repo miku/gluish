@@ -44,11 +44,13 @@ class SomeTask(TestTask):
 class MappedDateParameter3(AbstractMappedDateParameter):
     """ Use a SomeTask to find some date. """
     def mapped_date(self, date):
-        """ Map everything to a week earlier. """
         task = SomeTask()
         luigi.build([task], local_scheduler=True)
         value = task.output().open().next().strip()
         return datetime.datetime.strptime(value, '%Y-%m-%d').date()
+
+class TaskThatUsesAMappedParameter(TestTask):
+    date = MappedDateParameter3(default=datetime.date.today())
 
 
 class ParameterTest(unittest.TestCase):
@@ -66,3 +68,8 @@ class ParameterTest(unittest.TestCase):
 
         param = MappedDateParameter3()
         self.assertEquals(datetime.date(2000, 1, 1), param.parse('2014-01-01'))
+
+
+    def test_class_with_mapped_parameter(self):
+        task = TaskThatUsesAMappedParameter()
+        self.assertEquals(task.date, datetime.date(2000, 1, 1))
