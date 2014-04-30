@@ -141,6 +141,36 @@ if __name__ == '__main__':
     luigi.build([task], local_scheduler=True)
 ```
 
+An FTP template task
+--------------------
+
+Mirroring FTP shares. The example reuses the [`DefaultTask`](https://github.com/miku/gluish#a-basic-task-that-knows-its-place) from above. Uses the sophisticated [lftp](http://lftp.yar.ru/) program under the hood, so it needs to be available on your system.
+
+    from gluish.common import FTPMirror
+    import luigi
+
+    class MirrorTask(DefaultTask):
+        """ Indicator makes this task run on each call. """
+        indicator = luigi.Parameter(default=random_string())
+
+        def requires(self):
+            return FTPMirror(host='ftp.cs.brown.edu',
+                username='anonymous', password='anonymous',
+                pattern='*pdf', base='/pub/techreports/00')
+
+        def run(self):
+            # do some useful things with the files here ...
+            self.input().move(self.output().path)
+
+        def output(self):
+            return luigi.LocalTarget(path=self.path())
+
+
+The output of `FTPMirror` is a single file, that contains the paths to all mirrored files, one per line.
+
+A short self contained example can be found in [this gist](https://gist.github.com/miku/4d7e9589e63182f88509).
+
+
 Development
 -----------
 

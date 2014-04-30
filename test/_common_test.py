@@ -116,7 +116,7 @@ class MirrorTask(TestTask):
             base='/pub/techreports/00')
 
     def run(self):
-        luigi.File(self.input().path).move(self.output().path)
+        self.input().move(self.output().path)
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
