@@ -12,14 +12,14 @@ import unittest
 
 class MappedDateParameter1(AbstractMappedDateParameter):
     """ Simple static map. """
-    def mapped_date(self, date):
+    def mapper(self, date):
         """ Map everything to a single date. """
         return datetime.date(1970, 1, 1)
 
 
 class MappedDateParameter2(AbstractMappedDateParameter):
     """ Actually depend on the date parameter. """
-    def mapped_date(self, date):
+    def mapper(self, date):
         """ Map everything to a week earlier. """
         return date - datetime.timedelta(days=7)
 
@@ -43,7 +43,7 @@ class SomeTask(TestTask):
 
 class MappedDateParameter3(AbstractMappedDateParameter):
     """ Use a SomeTask to find some date. """
-    def mapped_date(self, date):
+    def mapper(self, date):
         task = SomeTask()
         luigi.build([task], local_scheduler=True)
         value = task.output().open().next().strip()
