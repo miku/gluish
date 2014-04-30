@@ -36,7 +36,8 @@ class AbstractMappedDateParameter(luigi.Parameter):
     # non-atomically increasing counter used for ordering parameters.
     counter = 0
 
-    def __init__(self, default=_no_default, is_list=False, is_boolean=False, is_global=False, significant=True, description=None,
+    def __init__(self, default=_no_default, is_list=False, is_boolean=False,
+                 is_global=False, significant=True, description=None,
                  default_from_config=None):
         """
         :param default: the default value for this parameter. This should match the type of the
