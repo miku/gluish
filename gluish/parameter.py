@@ -97,7 +97,7 @@ class AbstractMappedDateParameter(luigi.Parameter):
         if self.__default == _no_default and self.default_from_config is None:
             raise MissingParameterException("No default specified")
         if self.__default != _no_default:
-            return self.mapped_date(self.__default)
+            return self.mapper(self.__default)
 
         value = self._get_default_from_config(safe=False)
         if self.is_list:
@@ -120,7 +120,7 @@ class AbstractMappedDateParameter(luigi.Parameter):
         return self.__default != _no_default
 
     @abc.abstractmethod
-    def mapped_date(self, date):
+    def mapper(self, date):
         """ Must return the mapped date (object) for a given date (object).
 
             task = SomeOtherTask(date=date)
@@ -132,4 +132,4 @@ class AbstractMappedDateParameter(luigi.Parameter):
 
     def parse(self, s):
         date = datetime.date(*(int(v) for v in s.split('-')))
-        return self.mapped_date(date)
+        return self.mapper(date)
