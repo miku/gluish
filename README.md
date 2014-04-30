@@ -117,8 +117,8 @@ class SomeWork(luigi.Task):
         return False
 ```
 
-A task template for Elasticsearch
----------------------------------
+An Elasticsearch template task
+------------------------------
 
 Modeled after [luigi.contrib.CopyToTable](https://github.com/spotify/luigi/blob/01514d4559901ec62432cd13c48d9431b02433be/luigi/contrib/rdbms.py#L13).
 
