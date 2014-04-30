@@ -8,7 +8,7 @@ Parameter add-ons
 Custom luigi parameters.
 
 """
-
+# pylint: disable=F0401,C0103,R0921,E1101
 from luigi.parameter import (MissingParameterException, _no_default,
                              ParameterException)
 import abc
@@ -25,10 +25,11 @@ class ILNParameter(luigi.Parameter):
     *4 char* format.
     """
     def parse(self, s):
+        """ Parse the value and pad left with zeroes. """
         return s.zfill(4)
 
 
-class AbstractMappedDateParameter(luigi.Parameter):
+class AbstractMappedDateParameter(luigi.DateParameter):
     """ A date parameter, that maps certain values to others on the fly.
     Useful, if the data source has non-standard update cycles, that can be
     evaluated on runtime. """
@@ -97,7 +98,10 @@ class AbstractMappedDateParameter(luigi.Parameter):
         if self.__default == _no_default and self.default_from_config is None:
             raise MissingParameterException("No default specified")
         if self.__default != _no_default:
-            return self.mapper(self.__default)
+            try:
+                return self.mapper(self.__default)
+            except NotImplementedError:
+                return self.__default
 
         value = self._get_default_from_config(safe=False)
         if self.is_list:
@@ -131,5 +135,6 @@ class AbstractMappedDateParameter(luigi.Parameter):
         raise NotImplementedError
 
     def parse(self, s):
+        """ Parse value into date and map it. """
         date = datetime.date(*(int(v) for v in s.split('-')))
         return self.mapper(date)
