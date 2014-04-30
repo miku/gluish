@@ -198,3 +198,28 @@ class FTPMirror(CommonTask):
 
     def output(self):
         return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
+
+
+class FTPFile(CommonTask):
+    """ Just require a single file from an FTP server. """
+    host = luigi.Parameter()
+    username = luigi.Parameter()
+    password = luigi.Parameter()
+    filepath = luigi.Parameter()
+
+    def requires(self):
+        return Executable(name='lftp')
+
+    def run(self):
+        command = """lftp -u {username},{password}
+        -e "set net:max-retries 5; set net:timeout 5; get -c
+        {filepath} -o {output}; exit" {host}"""
+
+        output = shellout(command, host=self.host,
+                          username=pipes.quote(self.username),
+                          password=pipes.quote(self.password),
+                          filepath=pipes.quote(self.filepath))
+        luigi.File(output).move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)

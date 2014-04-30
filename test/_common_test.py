@@ -5,7 +5,7 @@ Common tests.
 
 # pylint:disable=F0401,C0111,W0232,E1101
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
-                           FTPMirror)
+                           FTPMirror, FTPFile)
 from gluish.path import unlink
 from gluish.task import BaseTask
 from gluish.utils import random_string
@@ -129,3 +129,28 @@ class FTPMirrorTest(unittest.TestCase):
         got = task.output().open().read()
         self.assertTrue('cs00-02.pdf' in got,
                         msg='Task output was:\n%s' % got)
+
+
+class FTPFileCopyTask(TestTask):
+    """ Indicator make this task run on each test run. """
+    indicator = luigi.Parameter(default=random_string())
+
+    def requires(self):
+        return FTPFile(host='ftp.cs.brown.edu',
+            username='anonymous',
+            password='anonymous',
+            filepath='/pub/techreports/00/cs00-07.pdf')
+
+    def run(self):
+        self.input().move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(ext='pdf'))
+
+
+class FTPFileTest(unittest.TestCase):
+    def test_ftp_file(self):
+        task = FTPFileCopyTask()
+        luigi.build([task], local_scheduler=True)
+        got = task.output().open().read()
+        self.assertEquals(216449, len(got))
