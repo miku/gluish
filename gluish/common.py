@@ -182,7 +182,7 @@ class FTPMirror(CommonTask):
             os.makedirs(target)
 
         command = """lftp -u {username},{password}
-	-e "set net:max-retries 5; set net:timeout 10; mirror --verbose=0
+        -e "set net:max-retries 5; set net:timeout 10; mirror --verbose=0
         --only-newer -I {pattern} {base} {target}; exit" {host}"""
 
         shellout(command, host=self.host, username=pipes.quote(self.username),
@@ -212,7 +212,7 @@ class FTPFile(CommonTask):
 
     def run(self):
         command = """lftp -u {username},{password}
-	-e "set net:max-retries 5; set net:timeout 10; get -c
+        -e "set net:max-retries 5; set net:timeout 10; get -c
         {filepath} -o {output}; exit" {host}"""
 
         output = shellout(command, host=self.host,

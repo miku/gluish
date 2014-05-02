@@ -3,7 +3,7 @@
 Common tests.
 """
 
-# pylint:disable=F0401,C0111,W0232,E1101
+# pylint:disable=F0401,C0111,W0232,E1101,W0613
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
                            FTPMirror, FTPFile)
 from gluish.path import unlink
@@ -16,7 +16,14 @@ import tempfile
 import unittest
 import BeautifulSoup
 
+
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
+
+
+def mock_send_email(subject, message, sender, recipients, image_png=None):
+    pass
+luigi.notifications.send_email = mock_send_email
+
 
 class TestTask(BaseTask):
     BASE = tempfile.gettempdir()
@@ -26,7 +33,6 @@ class TestTask(BaseTask):
 class External(TestTask, luigi.ExternalTask):
     filename = luigi.Parameter(default='l-1.txt')
     def output(self):
-        print(os.path.join(FIXTURES, self.filename))
         return luigi.LocalTarget(path=os.path.join(FIXTURES, self.filename))
 
 
@@ -148,9 +154,33 @@ class FTPFileCopyTask(TestTask):
         return luigi.LocalTarget(path=self.path(ext='pdf'))
 
 
+class FTPFileCopyTaskWithWrongUsername(TestTask):
+    """ Indicator make this task run on each test run. """
+    indicator = luigi.Parameter(default=random_string())
+
+    def requires(self):
+        return FTPFile(host='ftp.cs.brown.edu',
+            username='wrongname',
+            password='anonymous',
+            filepath='/pub/techreports/00/cs00-07.pdf')
+
+    def run(self):
+        self.input().move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(ext='pdf'))
+
+
 class FTPFileTest(unittest.TestCase):
     def test_ftp_file(self):
         task = FTPFileCopyTask()
         luigi.build([task], local_scheduler=True)
         got = task.output().open().read()
         self.assertEquals(216449, len(got))
+
+    def test_ftp_file_with_wrong_username(self):
+        task = FTPFileCopyTaskWithWrongUsername()
+        luigi.build([task], local_scheduler=True)
+        self.assertFalse(task.complete())
+        # got = task.output().open().read()
+        # self.assertEquals(216449, len(got))

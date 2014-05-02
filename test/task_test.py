@@ -49,64 +49,115 @@ class TaskC(TestTask):
 
 
 class TaskD(TestTask):
-    """ Task with a date param and an float param. And a value rewriter. """
+    """ Task with a date param and an float param. And a closest method. """
     date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
     threshold = luigi.FloatParameter(default=0.1)
 
-    def nearest(self):
+    def closest(self):
         """ some dynamic attribute """
-        return '1234'
+        return self.date
 
     def output(self):
         """ output """
-        cbmap = {'date': lambda obj: obj.nearest()}
-        return luigi.LocalTarget(path=self.path(cbmap=cbmap))
+        return luigi.LocalTarget(path=self.path())
 
 
 class TaskE(TestTask):
-    """ Task with a date param and an insignificant float param. """
-    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
-    threshold = luigi.FloatParameter(default=0.1, significant=False)
+    """ Task with a date param and an float param. And a closest method. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    threshold = luigi.FloatParameter(default=0.1)
 
-    def nearest(self):
+    def closest(self):
         """ some dynamic attribute """
-        return '1234'
+        return self.date - datetime.timedelta(days=365)
 
     def output(self):
         """ output """
-        cbmap = {'date': lambda obj: obj.nearest()}
-        return luigi.LocalTarget(path=self.path(cbmap=cbmap))
+        return luigi.LocalTarget(path=self.path())
 
 
 class TaskF(TestTask):
-    """ Some custom cbmap/rewriter. """
-    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
-    city = luigi.Parameter(default='Madrid')
-    airport = luigi.Parameter(default='Barajas')
-    tags = luigi.Parameter(default='')
+    """ Task with a date param and an float param. And a closest method. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    threshold = luigi.FloatParameter(default=0.1, significant=False)
 
-    def get_tags(self):
-        """ make some external query ... """
-        return '-'.join(('hot', 'dry'))
+    def closest(self):
+        """ some dynamic attribute """
+        return self.date - datetime.timedelta(days=1)
 
     def output(self):
         """ output """
-        cbmap = {'tags': lambda obj: obj.get_tags()}
-        return luigi.LocalTarget(path=self.path(cbmap=cbmap))
+        return luigi.LocalTarget(path=self.path())
 
 
 class TaskG(TestTask):
-    """ Another rewrite example. """
-    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
-
-    def nearest(self):
-        """ some dynamic attribute """
-        return '1.1.1970'
+    """ Task with a date param and an float param. And a closest method. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
 
     def output(self):
-        """ output and rewrite """
-        cbmap = {'date': nearest}
-        return luigi.LocalTarget(path=self.path(cbmap=cbmap))
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
+class TaskH(TestTask):
+    """ Task with a date param and an float param. And a closest method. """
+    closest = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
+class TaskI(TestTask):
+    """ Task with a date param and an float param. And a closest method. """
+    closest = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+
+    def closest(self):
+        """ some dynamic attribute """
+        return self.date - datetime.timedelta(days=1)
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
+class TaskJ(TestTask):
+    """ Task with some exception in closest. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+
+    def closest(self):
+        raise ValueError()
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
+class TaskK(TestTask):
+    """ Task that returns a float from closest. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+
+    def closest(self):
+        return 10.10
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
+class TaskL(TestTask):
+    """ Task that returns some custom object from closest. """
+    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+
+    def closest(self):
+        class X(object):
+            def __str__(self):
+                return 'ABC'
+        return X()
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
 
 
 class TaskTest(unittest.TestCase):
@@ -114,41 +165,65 @@ class TaskTest(unittest.TestCase):
 
     def test_generic_task(self):
         """ Only output tests. """
+        prefix = os.path.join(TestTask.BASE, TestTask.TAG)
+
         task = TaskA()
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskA', 'output.tsv'))
+            os.path.join(prefix, 'TaskA', 'output.tsv'))
 
         task = TaskB()
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskB',
-                         'date-1970-01-01.tsv'))
+            os.path.join(prefix, 'TaskB', 'date-1970-01-01.tsv'))
 
         task = TaskC()
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskC',
-                         'date-1970-01-01-threshold-0.1.tsv'))
+            os.path.join(prefix, 'TaskC', 'date-1970-01-01-threshold-0.1.tsv'))
 
         task = TaskD()
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskD',
-                         'date-1234-threshold-0.1.tsv'))
+            os.path.join(prefix, 'TaskD', 'date-1970-01-01-threshold-0.1.tsv'))
 
         task = TaskE()
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskE',
-                         'date-1234.tsv'))
+            os.path.join(prefix, 'TaskE', 'date-1999-01-01-threshold-0.1.tsv'))
 
         task = TaskF()
+        self.assertEquals(task.closest(), datetime.date(1999, 12, 31))
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskF',
-                'airport-Barajas-city-Madrid-date-1970-01-01-tags-hot-dry.tsv'))
+            os.path.join(prefix, 'TaskF', 'date-1999-12-31.tsv'))
 
         task = TaskG()
+        self.assertEquals(task.closest(), datetime.date(2000, 1, 1))
         self.assertEquals(task.output().path,
-            os.path.join(TestTask.BASE, TestTask.TAG, 'TaskG',
-                         'date-1.1.1970.tsv'))
+            os.path.join(prefix, 'TaskG', 'date-2000-01-01.tsv'))
 
+        task = TaskH()
+        self.assertEquals(task.closest, datetime.date(2000, 1, 1))
+        self.assertEquals(task.output().path,
+            os.path.join(prefix, 'TaskH', 'closest-2000-01-01.tsv'))
 
+        task = TaskI()
+        with self.assertRaises(AttributeError):
+            task.closest()
+
+        self.assertEquals(task.output().path,
+            os.path.join(prefix, 'TaskI', 'output.tsv'))
+
+        task = TaskJ()
+        with self.assertRaises(ValueError):
+            task.closest()
+        with self.assertRaises(ValueError):
+            task.output().path
+
+        task = TaskK()
+        self.assertEquals(task.output().path,
+            os.path.join(prefix, 'TaskK', 'date-10.1.tsv'))
+
+        task = TaskL()
+        self.assertEquals(task.output().path,
+            os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
+
+        
     def test_mock_task(self):
         """ Test the mock class. """
         task = MockTask(fixture=os.path.join(FIXTURES, 'l-1.txt'))
