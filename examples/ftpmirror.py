@@ -4,7 +4,7 @@
 """
 Example FTPMirror task. On the command line:
 
-    $ python ftpmirror-example.py MirrorTask --local-scheduler
+    $ python ftpmirror.py MirrorTask --local-scheduler
 
 Example output:
 
