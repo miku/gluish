@@ -45,7 +45,7 @@ class BaseTask(luigi.Task):
 
         `ext` sets the extension of the file.
 
-        If `hash` is true, the filename (w/o extenstion) will be hashed.
+        If `hash` is true, the filename (w/o extension) will be hashed.
 
         `cbmap` is a callback dictionary, with parameter names as keys and
         function objects as values. A use case is the mapping of a date to some
