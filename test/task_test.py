@@ -5,7 +5,8 @@
 Test tasks.
 """
 
-from gluish.task import BaseTask, nearest, MockTask
+from gluish.task import BaseTask, nearest, MockTask, is_closest_date_parameter
+from gluish.parameter import ClosestDateParameter
 import unittest
 import tempfile
 import luigi
@@ -50,7 +51,7 @@ class TaskC(TestTask):
 
 class TaskD(TestTask):
     """ Task with a date param and an float param. And a closest method. """
-    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(1970, 1, 1))
     threshold = luigi.FloatParameter(default=0.1)
 
     def closest(self):
@@ -64,7 +65,7 @@ class TaskD(TestTask):
 
 class TaskE(TestTask):
     """ Task with a date param and an float param. And a closest method. """
-    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
     threshold = luigi.FloatParameter(default=0.1)
 
     def closest(self):
@@ -78,7 +79,7 @@ class TaskE(TestTask):
 
 class TaskF(TestTask):
     """ Task with a date param and an float param. And a closest method. """
-    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
     threshold = luigi.FloatParameter(default=0.1, significant=False)
 
     def closest(self):
@@ -110,7 +111,7 @@ class TaskH(TestTask):
 
 class TaskI(TestTask):
     """ Task with a date param and an float param. And a closest method. """
-    closest = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    closest = ClosestDateParameter(default=datetime.date(2000, 1, 1))
 
     def closest(self):
         """ some dynamic attribute """
@@ -123,7 +124,7 @@ class TaskI(TestTask):
 
 class TaskJ(TestTask):
     """ Task with some exception in closest. """
-    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
 
     def closest(self):
         raise ValueError()
@@ -135,7 +136,7 @@ class TaskJ(TestTask):
 
 class TaskK(TestTask):
     """ Task that returns a float from closest. """
-    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
 
     def closest(self):
         return 10.10
@@ -147,7 +148,7 @@ class TaskK(TestTask):
 
 class TaskL(TestTask):
     """ Task that returns some custom object from closest. """
-    date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
 
     def closest(self):
         class X(object):
@@ -162,6 +163,10 @@ class TaskL(TestTask):
 
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
+
+    def test_is_closest_date_parameter(self):
+        self.assertEquals(is_closest_date_parameter(TaskL, 'date'), True)
+        self.assertEquals(is_closest_date_parameter(TaskG, 'date'), False)
 
     def test_generic_task(self):
         """ Only output tests. """

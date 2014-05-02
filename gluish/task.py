@@ -10,6 +10,7 @@ A default task, that covers file system layout.
 """
 # pylint: disable=F0401,E1101,E1103
 from luigi.task import id_to_name_and_params
+from gluish.parameter import ClosestDateParameter
 import datetime
 import hashlib
 import luigi
@@ -30,6 +31,13 @@ def nearest(obj):
 def default_base(envvar='TASKHOME'):
     """ Let the environment control the base path for all tasks. """
     return os.environ.get(envvar, tempfile.gettempdir())
+
+def is_closest_date_parameter(task, param_name):
+    """ Return the parameter class of param_name on task. """
+    for name, obj in task.get_params():
+        if name == param_name:
+            return hasattr(obj, 'use_closest_date')
+    return False
 
 
 class BaseTask(luigi.Task):
@@ -57,11 +65,9 @@ class BaseTask(luigi.Task):
         task_name, task_params = id_to_name_and_params(self.task_id)
 
         if filename is None:
-            # use `self.closest`
             if 'date' in task_params:
-                if (isinstance(self.date, datetime.date) and
-                    hasattr(self, 'closest')):
-                    task_params['date'] = str(self.closest())
+                if is_closest_date_parameter(self, 'date'):
+                    task_params['date'] = self.closest()
 
             parts = ('{k}-{v}'.format(k=k, v=v)
                      for k, v in task_params.iteritems())

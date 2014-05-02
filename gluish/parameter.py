@@ -28,6 +28,9 @@ class ILNParameter(luigi.Parameter):
         """ Parse the value and pad left with zeroes. """
         return s.zfill(4)
 
+class ClosestDateParameter(luigi.DateParameter):
+    use_closest_date = True
+
 
 class AbstractMappedDateParameter(luigi.DateParameter):
     """ A date parameter, that maps certain values to others on the fly.
