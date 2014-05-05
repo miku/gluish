@@ -24,7 +24,7 @@ Usage:
         luigi.build([task], local_scheduler=True)
 """
 
-# pylint: disable=F0401,E1101
+# pylint: disable=F0401,E1101,C0103
 import abc
 import hashlib
 import json
@@ -141,10 +141,9 @@ class CopyToIndex(luigi.Task):
         """ The target index. May exists or not. """
         return None
 
-    @abc.abstractproperty
     def doc_type(self):
         """ The target doc_type. """
-        return None
+        return 'default'
 
     @property
     def mapping(self):
