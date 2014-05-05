@@ -141,6 +141,7 @@ class CopyToIndex(luigi.Task):
         """ The target index. May exists or not. """
         return None
 
+    @property
     def doc_type(self):
         """ The target doc_type. """
         return 'default'
