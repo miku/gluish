@@ -5,7 +5,8 @@
 Test tasks.
 """
 
-from gluish.task import BaseTask, nearest, MockTask, is_closest_date_parameter
+# pylint: disable=E1101,W0232
+from gluish.task import BaseTask, MockTask, is_closest_date_parameter
 from gluish.parameter import ClosestDateParameter
 import unittest
 import tempfile
