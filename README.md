@@ -224,4 +224,4 @@ Pylint hook
     $ echo '
     #!/usr/bin/env bash
     git-pylint-commit-hook
-    ' > .git/hooks/pre-commitgit
+    ' > .git/hooks/pre-commit
