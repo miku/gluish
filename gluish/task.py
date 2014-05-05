@@ -9,8 +9,9 @@ A default task, that covers file system layout.
 
 """
 # pylint: disable=F0401,E1101,E1103
-from luigi.task import id_to_name_and_params
+from gluish import GLUISH_DATA
 from gluish.parameter import ClosestDateParameter
+from luigi.task import id_to_name_and_params
 import datetime
 import hashlib
 import luigi
@@ -45,7 +46,7 @@ class BaseTask(luigi.Task):
     A base task with a `path` method. BASE should be set to the root
     directory of all tasks. TAG is a shard for a group of related tasks.
     """
-    BASE = default_base()
+    BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
     TAG = 'default'
 
     def closest(self):

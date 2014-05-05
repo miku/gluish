@@ -4,29 +4,34 @@ Common tests.
 """
 
 # pylint:disable=F0401,C0111,W0232,E1101,W0613
+from gluish import GLUISH_DATA
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
                            FTPMirror, FTPFile)
 from gluish.path import unlink
 from gluish.task import BaseTask
 from gluish.utils import random_string
+import BeautifulSoup
 import datetime
 import luigi
 import os
 import tempfile
 import unittest
-import BeautifulSoup
 
-
+# path to fixtures
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
-
+# do not send any warning mail
 def mock_send_email(subject, message, sender, recipients, image_png=None):
     pass
 luigi.notifications.send_email = mock_send_email
 
+# if GLUISH_DATA is set on the system, use it to avoid 'cross-device links'
+tempfile.tempdir = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
+
+
 
 class TestTask(BaseTask):
-    BASE = tempfile.gettempdir()
+    BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
     TAG = 't'
 
 

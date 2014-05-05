@@ -4,6 +4,7 @@
 Tasks that can be used out of the box.
 """
 # pylint: disable=F0401,W0232,R0903,E1101
+from gluish import GLUISH_DATA
 from gluish.benchmark import timed
 from gluish.format import TSV
 from gluish.intervals import daily
@@ -32,7 +33,7 @@ class CommonTask(BaseTask):
     A base class for common classes. These artefacts will be written to the
     systems tempdir.
     """
-    BASE = os.environ.get('GLUISH_DATA', tempfile.gettempdir())
+    BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
     TAG = 'common'
 
 
