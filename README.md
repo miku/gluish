@@ -213,3 +213,15 @@ As of [4a7ec26ae6680d880ae20bebd514aba70d801687](https://github.com/miku/gluish/
     TOTAL                621    149    76%
     ----------------------------------------------------------------------
     Ran 33 tests in 0.269s
+
+
+Pylint hook
+-----------
+
+    $ pip install git-pylint-commit-hook
+    $ touch .git/hooks/pre-commit
+    $ chmod +x .git/hooks/pre-commit
+    $ echo '
+    #!/usr/bin/env bash
+    git-pylint-commit-hook
+    ' > .git/hooks/pre-commitgit
