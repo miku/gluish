@@ -19,20 +19,6 @@ import os
 import tempfile
 
 
-def nearest(obj):
-    """
-    Replace a parameter named `date` with the value of a `nearest` attribute,
-    which should return the nearest date in the past.
-    """
-    if not hasattr(obj, 'nearest'):
-        raise AttributeError('Missing attribute.')
-    return obj.nearest() if callable(obj.nearest) else obj.nearest
-
-
-def default_base(envvar='TASKHOME'):
-    """ Let the environment control the base path for all tasks. """
-    return os.environ.get(envvar, tempfile.gettempdir())
-
 def is_closest_date_parameter(task, param_name):
     """ Return the parameter class of param_name on task. """
     for name, obj in task.get_params():
