@@ -6,6 +6,7 @@ Test tasks.
 """
 
 # pylint: disable=E1101,W0232
+from gluish import GLUISH_DATA
 from gluish.task import BaseTask, MockTask, is_closest_date_parameter
 from gluish.parameter import ClosestDateParameter
 import unittest
@@ -16,10 +17,13 @@ import os
 
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
+# bring tempdir in line with GLUISH_DATA
+tempfile.tempdir = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
+
 
 class TestTask(BaseTask):
     """ A base class for test tasks. """
-    BASE = tempfile.gettempdir()
+    BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
     TAG = 't'
 
 
