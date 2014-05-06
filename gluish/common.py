@@ -164,7 +164,7 @@ class FTPMirror(CommonTask):
     username = luigi.Parameter()
     password = luigi.Parameter()
     pattern = luigi.Parameter(default='*', description="e.g. '*leip_*.zip'")
-    base = luigi.Parameter(default='/')
+    base = luigi.Parameter(default='.')
     indicator = luigi.Parameter(default=random_string())
 
     def requires(self):
