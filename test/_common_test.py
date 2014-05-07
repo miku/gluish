@@ -3,10 +3,10 @@
 Common tests.
 """
 
-# pylint:disable=F0401,C0111,W0232,E1101,W0613
+# pylint:disable=F0401,C0111,W0232,E1101,E1103,W0613
 from gluish import GLUISH_DATA
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
-                           FTPMirror, FTPFile)
+                           FTPMirror, FTPFile, Directory)
 from gluish.path import unlink
 from gluish.task import BaseTask
 from gluish.utils import random_string
@@ -189,3 +189,19 @@ class FTPFileTest(unittest.TestCase):
         self.assertFalse(task.complete())
         # got = task.output().open().read()
         # self.assertEquals(216449, len(got))
+
+
+class DirectoryTest(unittest.TestCase):
+    def test_create_dir(self):
+        target = os.path.join(tempfile.gettempdir(), random_string())
+        task = Directory(path=target)
+        luigi.build([task], local_scheduler=True)
+        self.assertEquals(task.output().path, target)
+        self.assertTrue(os.path.isdir(task.output().path))
+
+        # task must be idempotent
+        task = Directory(path=target)
+        self.assertTrue(task.complete())
+        luigi.build([task], local_scheduler=True)
+        self.assertEquals(task.output().path, target)
+        self.assertTrue(os.path.isdir(task.output().path))

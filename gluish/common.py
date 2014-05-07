@@ -224,3 +224,21 @@ class FTPFile(CommonTask):
 
     def output(self):
         return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
+
+
+class Directory(luigi.Task):
+    """ Create directory or fail. """
+    path = luigi.Parameter(description='directory to create')
+
+    def run(self):
+        try:
+            os.makedirs(self.path)
+        except OSError as err:
+            if err.errno == 17:
+                # file exists, this can happen in parallel execution evns
+                pass
+            else:
+                raise RuntimeError(err)
+
+    def output(self):
+        return luigi.LocalTarget(self.path)
