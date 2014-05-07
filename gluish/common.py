@@ -22,6 +22,8 @@ import logging
 import luigi
 import os
 import pipes
+import re
+import requests
 import tempfile
 
 
@@ -242,3 +244,38 @@ class Directory(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.path)
+
+
+class FXRates(CommonTask):
+    """
+    Download and parse XML EUR daily FX rates into TSV (CURRENCY, RATE)
+    http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml
+
+    Example output:
+
+        USD     1.3515
+        JPY     131.76
+        BGN     1.9558
+        CZK     25.606
+        DKK     7.4586
+        GBP     0.83410
+        HUF     296.70
+        LTL     3.4528
+        LVL     0.7027
+        PLN     4.2190
+        RON     4.4500
+        ...
+    """
+    date = luigi.DateParameter(default=datetime.date.today())
+    url = luigi.Parameter(
+        default='http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml')
+
+    def run(self):
+        r = requests.get(self.url)
+        with self.output().open('w') as output:
+            soup = BeautifulSoup.BeautifulStoneSoup(r.text)
+            for el in soup.findAll('cube', currency=re.compile('.*')):
+                output.write_tsv(el['currency'], el['rate'])
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
