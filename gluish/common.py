@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-Tasks that can be used out of the box.
+Tasks that can (mostly) be used out of the box.
 """
 # pylint: disable=F0401,W0232,R0903,E1101
 from gluish import GLUISH_DATA
