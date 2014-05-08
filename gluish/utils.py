@@ -5,9 +5,10 @@ Various utilities.
 """
 
 from dateutil import relativedelta
-from functools import wraps
+from functools import update_wrapper
 from gluish.colors import cyan
 import collections
+import cPickle
 import itertools
 import logging
 import random
@@ -175,12 +176,14 @@ def shellout(template, **kwargs):
     return kwargs.get('output')
 
 
-def memoize(func):
-    """ Simple memoize decorator for functions without kwargs. """
-    cache = {}
-    @wraps(func)
-    def wrap(*args):
-        if args not in cache:
-            cache[args] = func(*args)
-        return cache[args]
-    return wrap
+class memoize(object):
+    """ From the Cookbook. """
+    def __init__(self, func):
+        self.func = func
+        self.memo = {}
+        update_wrapper(self, func)
+    def __call__(self, *args, **kwds):
+        key = cPickle.dumps(args, 1) + cPickle.dumps(kwds, 1)
+        if not self.memo.has_key(key):
+            self.memo[key] = self.func(*args, **kwds)
+        return self.memo[key]
