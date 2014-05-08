@@ -5,6 +5,7 @@ Various utilities.
 """
 
 from dateutil import relativedelta
+from functools import wraps
 from gluish.colors import cyan
 import collections
 import itertools
@@ -172,3 +173,14 @@ def shellout(template, **kwargs):
             error.code = code
             raise error
     return kwargs.get('output')
+
+
+def memoize(func):
+    """ Simple memoize decorator for functions without kwargs. """
+    cache = {}
+    @wraps(func)
+    def wrap(*args):
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+    return wrap

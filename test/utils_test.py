@@ -6,7 +6,8 @@ Test mixed utils.
 
 from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
-                          shellout)
+                          shellout, memoize)
+import collections
 import datetime
 import os
 import tempfile
@@ -97,6 +98,31 @@ class UtilsTest(unittest.TestCase):
         self.assertTrue(os.path.exists(output))
         with open(output) as handle:
             self.assertEquals('1', handle.read().strip())
+
+    def test_memoize(self):
+        """ Test memoize """
+        counter = collections.Counter()
+
+        def f1(x):
+            counter['f1'] += 1
+            return 2 * x
+
+        @memoize
+        def f2(x):
+            counter['f2'] += 1
+            return 2 * x
+
+        self.assertEquals(0, counter['f1'])
+        self.assertEquals(4, f1(2))
+        self.assertEquals(1, counter['f1'])
+        self.assertEquals(4, f1(2))
+        self.assertEquals(2, counter['f1'])
+
+        self.assertEquals(0, counter['f2'])
+        self.assertEquals(4, f2(2))
+        self.assertEquals(1, counter['f2'])
+        self.assertEquals(4, f2(2))
+        self.assertEquals(1, counter['f2'])
 
 
 class DotDictTest(unittest.TestCase):
