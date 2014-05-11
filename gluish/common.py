@@ -4,6 +4,7 @@
 Tasks that can (mostly) be used out of the box.
 """
 # pylint: disable=F0401,W0232,R0903,E1101
+from elasticsearch import helpers as eshelpers
 from gluish import GLUISH_DATA
 from gluish.benchmark import timed
 from gluish.format import TSV
@@ -11,7 +12,7 @@ from gluish.intervals import daily
 from gluish.oai import oai_harvest
 from gluish.path import iterfiles, which
 from gluish.task import BaseTask
-from gluish.utils import shellout, random_string
+from gluish.utils import shellout, random_string, parse_isbns
 import BeautifulSoup
 import collections
 import datetime
@@ -22,8 +23,10 @@ import logging
 import luigi
 import os
 import pipes
+import pyisbn
 import re
 import requests
+import string
 import tempfile
 
 
@@ -276,6 +279,51 @@ class FXRates(CommonTask):
             soup = BeautifulSoup.BeautifulStoneSoup(r.text)
             for el in soup.findAll('cube', currency=re.compile('.*')):
                 output.write_tsv(el['currency'], el['rate'])
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
+
+
+class IndexIsbnList(CommonTask):
+    """ Get a list of ISBNs 13 for an index and a date. Uses the default
+    layout with "content.020.a", "content.020.9", "content.020.z" and
+    "content.776.z" fields. """
+    date = luigi.DateParameter(default=datetime.date.today())
+    index = luigi.Parameter(description='index name')
+    size = luigi.IntParameter(default=50000, significant=False)
+    scroll = luigi.Parameter(default='10m', significant=False)
+    keys = luigi.Parameter(default='content.020.a,content.020.9,content.020.z,content.776.z')
+
+    @timed
+    def run(self):
+        es = elasticsearch.Elasticsearch()
+        isbn_fields = map(string.strip, self.keys.split(','))
+        hits = eshelpers.scan(es, {'query': {'match_all': {}},
+                                   'fields': isbn_fields}, index=self.index,
+                              scroll=self.scroll, size=self.size)
+
+        with self.output().open('w') as output:
+            for i, hit in enumerate(hits):
+                fields = hit.get('fields', {})
+                isbns = set()
+                for isbn_field in isbn_fields:
+                    tag = isbn_field.replace("content.", "")
+                    for value in fields.get(isbn_field, []):
+                        if isinstance(value, basestring):
+                            value = value.strip().replace('-', '')
+                            if len(value) == 0:
+                                continue
+                            for isbn in parse_isbns(value):
+                                isbns.add((tag, isbn.encode('utf-8')))
+                        elif isinstance(value, list):
+                            for v in value:
+                                v = value.strip().replace('-', '')
+                                if len(v) == 0:
+                                    continue
+                                for isbn in parse_isbns(value):
+                                    isbns.add((tag, isbn.encode('utf-8')))
+                for tag, isbn in isbns:
+                    output.write_tsv(hit['_id'], isbn, tag)
 
     def output(self):
         return luigi.LocalTarget(path=self.path(digest=True), format=TSV)

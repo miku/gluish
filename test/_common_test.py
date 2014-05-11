@@ -6,7 +6,9 @@ Common tests.
 # pylint:disable=F0401,C0111,W0232,E1101,E1103,W0613
 from gluish import GLUISH_DATA
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
-                           FTPMirror, FTPFile, Directory, FXRates)
+                           FTPMirror, FTPFile, Directory, FXRates, IndexIsbnList)
+from gluish.esindex import CopyToIndex
+from gluish.format import TSV
 from gluish.path import unlink, wc
 from gluish.task import BaseTask
 from gluish.utils import random_string
@@ -227,3 +229,44 @@ class ECBFXTest(unittest.TestCase):
                     decimal.Decimal(row.rate)
                 except decimal.InvalidOperation as err:
                     self.fail(err)
+
+#
+# IndexIsbnList tests
+#
+class SampleIndex(TestTask, CopyToIndex):
+    indicator = luigi.Parameter(default=random_string())
+
+    index = 'testisbn'
+    doctype = 'minimal'
+    purge_existing_index = True
+
+    def docs(self):
+        return [
+            {'content': {'020': [{'a': ['0-321-34960-1']},
+                                 {'a': ['11112-3460-1 (pbk.)']},
+                                 {'z': ['0-121-34960-1']}]}},
+        ]
+
+class SampleTask(TestTask):
+    indicator = luigi.Parameter(default=random_string())
+    def requires(self):
+        return SampleIndex(indicator=self.indicator)
+    def run(self):
+        task = IndexIsbnList(index='testisbn')
+        luigi.build([task], local_scheduler=True)
+        task.output().move(self.output().path)
+    def output(self):
+        return luigi.LocalTarget(path=self.path(), format=TSV)
+
+class IsbnIndexListTest(unittest.TestCase):
+    def test_isbn_index(self):
+        task = SampleTask()
+        luigi.build([task], local_scheduler=True)
+        with task.output().open() as handle:
+            expected = set((('020.a', '9780321349606'),
+                            ('020.a', '9781111234607'),
+                            ('020.z', '9780121349608')))
+
+            got = set(((row.tag, row.isbn)
+                      for row in handle.iter_tsv(cols=('id', 'isbn', 'tag'))))
+            self.assertEquals(expected, got)

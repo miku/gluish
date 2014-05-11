@@ -6,7 +6,7 @@ Test mixed utils.
 
 from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
-                          shellout)
+                          shellout, parse_isbns)
 import datetime
 import os
 import tempfile
@@ -97,6 +97,16 @@ class UtilsTest(unittest.TestCase):
         self.assertTrue(os.path.exists(output))
         with open(output) as handle:
             self.assertEquals('1', handle.read().strip())
+
+    def test_parse_isbns(self):
+        self.assertEquals([], parse_isbns("Nothing"))
+        self.assertEquals([], parse_isbns("123 Nothing"))
+        self.assertEquals(['9780321349606'], parse_isbns("0-321-34960-1 Nothing"))
+        self.assertEquals(['9780321349606'], parse_isbns("0-321-34960-1 0-321-34960-1 Nothing"))
+        self.assertEquals(['9780321349606'], parse_isbns("0-321-34960-2 Nothing"))
+        self.assertEquals(['9780321349613'], parse_isbns("0-321-34961-2 Nothing"))
+        self.assertEquals(['9780321349606', '9780321349613'], parse_isbns("9780321349606 Nothing 0-321-34961-2"))
+        self.assertEquals([], parse_isbns('8085800XXX'))
 
 
 class DotDictTest(unittest.TestCase):

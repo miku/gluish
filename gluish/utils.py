@@ -9,6 +9,7 @@ from gluish.colors import cyan
 import collections
 import itertools
 import logging
+import pyisbn
 import random
 import re
 import string
@@ -172,3 +173,19 @@ def shellout(template, **kwargs):
             error.code = code
             raise error
     return kwargs.get('output')
+
+
+def parse_isbns(s):
+    """ Given a string, find as many uniq ISBNs in it an return them. """
+    pattern = re.compile('[0-9X-]{10,25}')
+    isbns = set()
+    for candidate in pattern.findall(s):
+        candidate = candidate.replace('-', '').replace(' ', '')
+        if len(candidate) == 10:
+            try:
+                isbns.add(pyisbn.convert(candidate))
+            except pyisbn.IsbnError as err:
+                logger.error('%s: %s' % (s, err))
+        elif len(candidate) == 13:
+            isbns.add(candidate)
+    return list(isbns)
