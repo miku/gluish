@@ -5,8 +5,10 @@ Various utilities.
 """
 
 from dateutil import relativedelta
+from functools import update_wrapper
 from gluish.colors import cyan
 import collections
+import cPickle
 import itertools
 import logging
 import pyisbn
@@ -189,3 +191,16 @@ def parse_isbns(s):
         elif len(candidate) == 13:
             isbns.add(candidate)
     return list(isbns)
+
+
+class memoize(object):
+    """ From the Cookbook. """
+    def __init__(self, func):
+        self.func = func
+        self.memo = {}
+        update_wrapper(self, func)
+    def __call__(self, *args, **kwds):
+        key = cPickle.dumps(args, 1) + cPickle.dumps(kwds, 1)
+        if not self.memo.has_key(key):
+            self.memo[key] = self.func(*args, **kwds)
+        return self.memo[key]

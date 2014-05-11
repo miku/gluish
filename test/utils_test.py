@@ -4,13 +4,16 @@
 Test mixed utils.
 """
 
+# pylint: disable=C0103
 from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
-                          shellout, parse_isbns)
+                          shellout, parse_isbns, memoize)
+import collections
 import datetime
 import os
 import tempfile
 import unittest
+
 
 class UtilsTest(unittest.TestCase):
     """ Test various utility functions. """
@@ -107,6 +110,52 @@ class UtilsTest(unittest.TestCase):
         self.assertEquals(['9780321349613'], parse_isbns("0-321-34961-2 Nothing"))
         self.assertEquals(['9780321349606', '9780321349613'], parse_isbns("9780321349606 Nothing 0-321-34961-2"))
         self.assertEquals([], parse_isbns('8085800XXX'))
+
+    def test_memoize(self):
+        """ Test memoize """
+        counter = collections.Counter()
+
+        def f1(x):
+            counter['f1'] += 1
+            return 2 * x
+
+        @memoize
+        def f2(x):
+            counter['f2'] += 1
+            return 2 * x
+
+        self.assertEquals(0, counter['f1'])
+        self.assertEquals(4, f1(2))
+        self.assertEquals(1, counter['f1'])
+        self.assertEquals(4, f1(2))
+        self.assertEquals(2, counter['f1'])
+
+        self.assertEquals(0, counter['f2'])
+        self.assertEquals(4, f2(2))
+        self.assertEquals(1, counter['f2'])
+        self.assertEquals(4, f2(2))
+        self.assertEquals(1, counter['f2'])
+
+    def test_memoize_mutable_objects(self):
+        """ memoize mutable objects """
+        @memoize
+        def f1(obj):
+            return obj
+
+        self.assertEquals(1, f1(1))
+        self.assertEquals({}, f1({}))
+        obj = object()
+        self.assertEquals(obj, f1(obj))
+
+    def test_memoize_kwargs(self):
+        """ memoize kwargs """
+        @memoize
+        def f1(a=1, b=2):
+            return a + b
+
+        self.assertEquals(3, f1())
+        self.assertEquals(4, f1(a=2))
+        self.assertEquals(6, f1(a=3, b=3))
 
 
 class DotDictTest(unittest.TestCase):
