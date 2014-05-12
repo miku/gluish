@@ -8,7 +8,6 @@ from elasticsearch import helpers as eshelpers
 from gluish import GLUISH_DATA
 from gluish.benchmark import timed
 from gluish.format import TSV
-from gluish.intervals import daily
 from gluish.oai import oai_harvest
 from gluish.path import iterfiles, which
 from gluish.task import BaseTask
@@ -23,7 +22,6 @@ import logging
 import luigi
 import os
 import pipes
-import pyisbn
 import re
 import requests
 import string
@@ -296,6 +294,7 @@ class IndexIsbnList(CommonTask):
 
     @timed
     def run(self):
+        """ Get all fields, then do a basic sanity check via parse_isbns. """
         es = elasticsearch.Elasticsearch()
         isbn_fields = map(string.strip, self.keys.split(','))
         hits = eshelpers.scan(es, {'query': {'match_all': {}},
@@ -327,3 +326,26 @@ class IndexIsbnList(CommonTask):
 
     def output(self):
         return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
+
+
+class IndexIdList(CommonTask):
+    """ Dump a list of (index, _id) for a given index. """
+    date = luigi.DateParameter(default=datetime.date.today())
+    index = luigi.Parameter(description='index name')
+    size = luigi.IntParameter(default=50000, significant=False)
+    scroll = luigi.Parameter(default='10m', significant=False)
+
+    @timed
+    def run(self):
+        """ Assumes local elasticsearch for now. """
+        es = elasticsearch.Elasticsearch()
+        hits = eshelpers.scan(es, {'query': {'match_all': {}}, 'fields': []},
+                              index=self.index, scroll=self.scroll,
+                              size=self.size)
+
+        with self.output().open('w') as output:
+            for i, hit in enumerate(hits):
+                output.write_tsv(self.index, hit['_id'])
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(), format=TSV)

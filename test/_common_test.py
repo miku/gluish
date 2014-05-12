@@ -6,7 +6,8 @@ Common tests.
 # pylint:disable=F0401,C0111,W0232,E1101,E1103,W0613
 from gluish import GLUISH_DATA
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
-                           FTPMirror, FTPFile, Directory, FXRates, IndexIsbnList)
+                           FTPMirror, FTPFile, Directory, FXRates,
+                           IndexIsbnList, IndexIdList)
 from gluish.esindex import CopyToIndex
 from gluish.format import TSV
 from gluish.path import unlink, wc
@@ -15,6 +16,7 @@ from gluish.utils import random_string
 import BeautifulSoup
 import datetime
 import decimal
+import elasticsearch
 import luigi
 import os
 import tempfile
@@ -233,19 +235,35 @@ class ECBFXTest(unittest.TestCase):
 #
 # IndexIsbnList tests
 #
+
+def _test_index_cleanup():
+    es = elasticsearch.Elasticsearch()
+    if es.indices.exists(index='testisbn'):
+        es.indices.delete(index='testisbn')
+
+    task = IndexIdList(index='testisbn')
+    if os.path.exists(task.output().path):
+        os.remove(task.output().path)
+
+
 class SampleIndex(TestTask, CopyToIndex):
     indicator = luigi.Parameter(default=random_string())
 
     index = 'testisbn'
-    doctype = 'minimal'
+    doc_type = 'default'
     purge_existing_index = True
+    mapping = {'default': {'date_detection': False,
+                           '_id': {'path': 'content.001'},
+                           '_all': {'enabled': True,
+                                    'term_vector': 'with_positions_offsets',
+                                    'store': True}}}
 
     def docs(self):
-        return [
-            {'content': {'020': [{'a': ['0-321-34960-1']},
-                                 {'a': ['11112-3460-1 (pbk.)']},
-                                 {'z': ['0-121-34960-1']}]}},
-        ]
+        return [{'content': {'020': [{'a': ['0-321-34960-1']},
+                                     {'a': ['11112-3460-1 (pbk.)']},
+                                     {'z': ['0-121-34960-1']}],
+                             '001': '12345'}}]
+
 
 class SampleTask(TestTask):
     indicator = luigi.Parameter(default=random_string())
@@ -258,7 +276,17 @@ class SampleTask(TestTask):
     def output(self):
         return luigi.LocalTarget(path=self.path(), format=TSV)
 
+
 class IsbnIndexListTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        _test_index_cleanup()
+
+    @classmethod
+    def tearDownClass(cls):
+        _test_index_cleanup()
+
     def test_isbn_index(self):
         task = SampleTask()
         luigi.build([task], local_scheduler=True)
@@ -270,3 +298,26 @@ class IsbnIndexListTest(unittest.TestCase):
             got = set(((row.tag, row.isbn)
                       for row in handle.iter_tsv(cols=('id', 'isbn', 'tag'))))
             self.assertEquals(expected, got)
+
+
+class IndexIdTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        _test_index_cleanup()
+
+    @classmethod
+    def tearDownClass(cls):
+        _test_index_cleanup()
+
+    def test_index_id(self):
+        task = SampleIndex()
+        luigi.build([task], local_scheduler=True)
+
+        task = IndexIdList(index='testisbn')
+        luigi.build([task], local_scheduler=True)
+
+        with task.output().open() as handle:
+            index, id = handle.iter_tsv(cols=('index', 'id')).next()
+        self.assertEquals(index, 'testisbn')
+        self.assertEquals(id, '12345')
