@@ -189,8 +189,8 @@ Example:
 
 A data source is fetched from FTP, but it is not known, when updates are
 supplied. So the FTP server needs to be checked in regular intervals.
-Dependent tasks can be considered up-to-date as long as there has been no
-update.
+Dependent tasks do not need to be updates as long as there is nothing new
+on the FTP server.
 
 To map an arbitrary date to the *closest* date in the past, where an update
 occured, you can use a `ClosestDateParameter`, which is just an ordinary
@@ -224,6 +224,21 @@ class SimpleTask(DefaultTask):
 
 A short, self contained can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
 
+If `task.closest` is a relatively expensive operation (FTP mirror, rsync)
+and workflow as a lot of `ClosestDateParameter` type of parameters, it is
+convenient to memoize the result of `task.closest()`. Conveniently, there
+is a `@memoize` decorator for that.
+
+
+```python
+from gluish.utils import memoize
+    ...
+
+    @memoize
+    def closest(self):
+        return self.date - datetime.timedelta(days=self.date.weekday())
+
+```
 
 ----
 
