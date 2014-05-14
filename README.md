@@ -185,7 +185,7 @@ Dynamic date parameter
 
 Sometimes the *effective* date for a task needs to be determined dynamically.
 
-Example:
+Consider for example a workflow involving an FTP server.
 
 A data source is fetched from FTP, but it is not known, when updates are
 supplied. So the FTP server needs to be checked in regular intervals.
