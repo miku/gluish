@@ -222,7 +222,7 @@ class SimpleTask(DefaultTask):
 
 ```
 
-A [short, self contained](http://www.sscce.org/) can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
+A short, self contained can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
 
 
 ----
