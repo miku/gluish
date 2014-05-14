@@ -180,8 +180,8 @@ A short self contained example can be found in [this gist](https://gist.github.c
 To copy a single file from an FTP server, there is an `FTPFile` template task.
 
 
-A derived DateParameter
------------------------
+Dynamic date parameter
+----------------------
 
 Sometimes the *effective* date for a task needs to be determined dynamically.
 
