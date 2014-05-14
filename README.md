@@ -225,10 +225,9 @@ class SimpleTask(DefaultTask):
 A short, self contained can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
 
 If `task.closest` is a relatively expensive operation (FTP mirror, rsync)
-and workflow as a lot of `ClosestDateParameter` type of parameters, it is
-convenient to memoize the result of `task.closest()`. Conveniently, there
-is a `@memoize` decorator for that.
-
+and the workflow uses a lot of `ClosestDateParameter` type of parameters, it is
+convenient to memoize the result of `task.closest()`. A `@memoize` decorator
+makes caching the result simple:
 
 ```python
 from gluish.utils import memoize
