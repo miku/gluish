@@ -13,6 +13,7 @@ Provides a base class, that autogenerates its output filenames based on
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
 
+
 A basic task that knows its place
 ---------------------------------
 
@@ -24,11 +25,13 @@ import datetime
 import luigi
 import tempfile
 
+
 class DefaultTask(BaseTask):
     """ Some default abstract task for your tasks. BASE and TAG determine
     the paths, where the artefacts will be stored. """
     BASE = tempfile.gettempdir()
     TAG = 'just-a-test'
+
 
 class RealTask(DefaultTask):
     """ Note that this task has a `self.path()`, that figures out the full
@@ -54,6 +57,7 @@ task.output().path
 # /var/folders/jy/g_b2kpwx0850/T/just-a-test/RealTask/date-1970-01-01.tsv
 
 ```
+
 
 A TSV format
 ------------
@@ -99,6 +103,7 @@ class TabularConsumer(DefaultTask):
 
 ```
 
+
 A benchmark decorator
 ---------------------
 
@@ -108,7 +113,6 @@ Log some running times. Mostly useful in interactive mode.
 from gluish.benchmark import timed
 
 class SomeWork(luigi.Task):
-
     @timed
     def run(self):
         pass
@@ -117,8 +121,9 @@ class SomeWork(luigi.Task):
         return False
 ```
 
-An Elasticsearch template task
-------------------------------
+
+Elasticsearch template task
+---------------------------
 
 Modeled after [luigi.contrib.CopyToTable](https://github.com/spotify/luigi/blob/01514d4559901ec62432cd13c48d9431b02433be/luigi/contrib/rdbms.py#L13).
 
@@ -141,8 +146,9 @@ if __name__ == '__main__':
     luigi.build([task], local_scheduler=True)
 ```
 
-An FTP template task
---------------------
+
+FTP mirroring task
+------------------
 
 Mirroring FTP shares. This example reuses the [`DefaultTask`](https://github.com/miku/gluish#a-basic-task-that-knows-its-place) from above. Uses the sophisticated [lftp](http://lftp.yar.ru/) program under the hood, so it needs to be available on your system.
 
@@ -170,6 +176,70 @@ class MirrorTask(DefaultTask):
 The output of `FTPMirror` is a single file, that contains the paths to all mirrored files, one per line.
 
 A short self contained example can be found in [this gist](https://gist.github.com/miku/4d7e9589e63182f88509).
+
+To copy a single file from an FTP server, there is an `FTPFile` template task.
+
+
+Dynamic date parameter
+----------------------
+
+Sometimes the *effective* date for a task needs to be determined dynamically.
+
+Consider for example a workflow involving an FTP server.
+
+A data source is fetched from FTP, but it is not known, when updates are
+supplied. So the FTP server needs to be checked in regular intervals.
+Dependent tasks do not need to be updates as long as there is nothing new
+on the FTP server.
+
+To map an arbitrary date to the *closest* date in the past, where an update
+occured, you can use a `ClosestDateParameter`, which is just an ordinary
+`DateParameter` but will invoke `task.closest()` behind the scene, to
+figure out the *effective date*.
+
+```python
+
+from gluish.parameter import ClosestDateParameter
+import datetime
+import luigi
+
+
+class SimpleTask(DefaultTask):
+    """ Reuse DefaultTask from above """
+    date = ClosestDateParameter(default=datetime.date.today())
+
+    def closest(self):
+        # invoke dynamic checks here ...
+        # for simplicity, map this task to the last monday
+        return self.date - datetime.timedelta(days=self.date.weekday())
+
+    def run(self):
+        with self.output().open('w') as output:
+            output.write("It's just another manic Monday!")
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path())
+
+```
+
+A short, self contained can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
+
+If `task.closest` is a relatively expensive operation (FTP mirror, rsync)
+and the workflow uses a lot of `ClosestDateParameter` type of parameters, it is
+convenient to memoize the result of `task.closest()`. A `@memoize` decorator
+makes caching the result simple:
+
+```python
+from gluish.utils import memoize
+    ...
+
+    @memoize
+    def closest(self):
+        return self.date - datetime.timedelta(days=self.date.weekday())
+
+```
+
+----
 
 
 Development
