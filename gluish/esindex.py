@@ -158,14 +158,10 @@ class ElasticsearchTarget(luigi.Target):
                                 }}}, sort=('date:desc',))
 
         for i, hit in enumerate(result.get('hits').get('hits'), start=1):
-            print(i, hit, self.marker_index_hist_size)
             if i > self.marker_index_hist_size:
-                logger.debug('Truncating history for %s/%s' % (self.index,
-                                                               self.doc_type))
                 marker_document_id = hit.get('_id')
-                self.es.delete(index=self.marker_index,
-                               doc_type=self.marker_doc_type,
-                               id=marker_document_id)
+                self.es.delete(id=marker_document_id, index=self.marker_index,
+                               doc_type=self.marker_doc_type)
         self.es.indices.flush(index=self.marker_index)
 
 
