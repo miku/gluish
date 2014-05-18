@@ -169,17 +169,24 @@ class CopyToIndex(luigi.Task):
     Template task for inserting a data set into Elasticsearch.
 
     Usage:
-    Subclass and override the required `index`, `doc_type` attributes.
-    Implement a custom `docs` method, that returns an iterable over
+
+    1. Subclass and override the required `index` attribute.
+
+    2. Implement a custom `docs` method, that returns an iterable over
     the documents. A document can be a JSON string, e.g. from
     a newline-delimited JSON (ndj) file (default implementation) or some
     dictionary.
 
-    Optional attributes: `host` (localhost), `port` (9200), `mapping` (None),
-    `chunk_size` (2000) and `raise_on_error` (True).
+    Optional attributes:
 
-    To customize how to access data from an input task, override the `docs`
-    method with a generator that yields each document as a python dictionary.
+    * `doc_type` (default),
+    * `host` (localhost),
+    * `port` (9200),
+    * `mapping` (None),
+    * `chunk_size` (2000),
+    * `raise_on_error` (True),
+    * `purge_existing_index` (False),
+    * `marker_index_hist_size` (0)
 
     """
 
@@ -230,7 +237,7 @@ class CopyToIndex(luigi.Task):
 
     def docs(self):
         """ Return the documents to be indexed. Beside the user defined
-        fields, the document can contain an `_index`, `_type` and `_id`. """
+        fields, the document may contain an `_index`, `_type` and `_id`. """
         with self.input().open('r') as fobj:
             for line in fobj:
                 yield line
