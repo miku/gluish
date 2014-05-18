@@ -5,7 +5,26 @@ Support for Elasticsearch (1.0.0 or newer).
 
 Provides an `ElasticsearchTarget` and a `CopyToIndex` template task.
 
-Usage:
+----
+
+A minimal example:
+
+    from gluish.esindex import CopyToIndex
+    import luigi
+
+    class ExampleIndex(CopyToIndex):
+        index = 'example'
+
+        def docs(self):
+            return [{'_id': 1, 'title': 'An example document.'}]
+
+    if __name__ == '__main__':
+        task = ExampleIndex()
+        luigi.build([task], local_scheduler=True)
+
+----
+
+All options:
 
     from gluish.esindex import CopyToIndex
     import luigi
@@ -15,6 +34,8 @@ Usage:
         port = 9200
         index = 'example'
         doc_type = 'default'
+        purge_existing_index = True
+        marker_index_hist_size = 1
 
         def docs(self):
             return [{'_id': 1, 'title': 'An example document.'}]
@@ -22,10 +43,25 @@ Usage:
     if __name__ == '__main__':
         task = ExampleIndex()
         luigi.build([task], local_scheduler=True)
+
+----
+
+`Host`, `port`, `index`, `doc_type` parameters are standard elasticsearch.
+
+`purge_existing_index` will delete the index, whenever an update is required.
+This is useful, when one deals with "dumps" that represent the whole data,
+not just updates.
+
+`marker_index_hist_size` sets the maximum number of entries in the 'marker'
+index. Keep all updates by default (0). Use 1 to only remember the most recent
+update to the index. This can be useful, if an index needs to recreated, even
+though the corresponding indexing task has been run sometime in the past - but
+a later indexing task might have altered the index in the meantime.
 """
 
 # pylint: disable=F0401,E1101,C0103
 import abc
+import datetime
 import hashlib
 import json
 import logging
@@ -48,9 +84,12 @@ class ElasticsearchTarget(luigi.Target):
     """ Target for a resource in Elasticsearch. """
 
     marker_index = luigi.configuration.get_config().get('elasticsearch',
-                                        'marker-index', 'index_updates')
+                                        'marker-index', 'update_log')
+    marker_doc_type = luigi.configuration.get_config().get('elasticsearch',
+                                        'marker-doc-type', 'entry')
 
-    def __init__(self, host, port, index, doc_type, update_id):
+    def __init__(self, host, port, index, doc_type, update_id,
+                 marker_index_hist_size=0):
         """
         Args:
             host (str): Elasticsearch server host
@@ -64,6 +103,10 @@ class ElasticsearchTarget(luigi.Target):
         self.index = index
         self.doc_type = doc_type
         self.update_id = update_id
+        self.marker_index_hist_size = marker_index_hist_size
+
+        self.es = elasticsearch.Elasticsearch([{'host': self.host,
+                                                'port': self.port}])
 
     def marker_index_document_id(self):
         """ Generate an id for the indicator document. """
@@ -76,22 +119,20 @@ class ElasticsearchTarget(luigi.Target):
         as well for documentation. """
         self.create_marker_index()
 
-        es = elasticsearch.Elasticsearch([{'host': self.host,
-                                           'port': self.port}])
-        es.index(index=self.marker_index, doc_type='default',
+        self.es.index(index=self.marker_index, doc_type=self.marker_doc_type,
                  id=self.marker_index_document_id(), body={
                     'update_id': self.update_id, 'target_index': self.index,
-                    'target_doc_type': self.doc_type
+                    'target_doc_type': self.doc_type, 'date': datetime.datetime.now(),
                  })
-        es.indices.flush(index=self.marker_index)
+        self.es.indices.flush(index=self.marker_index)
+        self.ensure_hist_size()
 
     def exists(self):
         """ Test, if this task has been run. """
-        es = elasticsearch.Elasticsearch([{'host': self.host,
-                                           'port': self.port}])
         try:
-            _ = es.get(index=self.marker_index, doc_type='default',
-                       id=self.marker_index_document_id())
+            _ = self.es.get(index=self.marker_index,
+                            doc_type=self.marker_doc_type,
+                            id=self.marker_index_document_id())
             return True
         except elasticsearch.NotFoundError:
             logger.debug('Marker document not found.')
@@ -101,10 +142,31 @@ class ElasticsearchTarget(luigi.Target):
 
     def create_marker_index(self):
         """ Create the index that will keep track of the tasks if necessary. """
-        es = elasticsearch.Elasticsearch([{'host': self.host,
-                                           'port': self.port}])
-        if not es.indices.exists(index=self.marker_index):
-            es.indices.create(index=self.marker_index)
+        if not self.es.indices.exists(index=self.marker_index):
+            self.es.indices.create(index=self.marker_index)
+
+    def ensure_hist_size(self):
+        """ Shrink the history of updates for a `index/doc_type` combination
+        down to `self.marker_index_hist_size`. """
+        if self.marker_index_hist_size == 0:
+            return
+        result = self.es.search(index=self.marker_index,
+                                doc_type=self.marker_doc_type,
+                                body={'query': {'term': {
+                                                'target_index': self.index,
+                                                'target_doc_type': self.doc_type
+                                }}}, sort=('date:desc',))
+
+        for i, hit in enumerate(result.get('hits').get('hits'), start=1):
+            print(i, hit, self.marker_index_hist_size)
+            if i > self.marker_index_hist_size:
+                logger.debug('Truncating history for %s/%s' % (self.index,
+                                                               self.doc_type))
+                marker_document_id = hit.get('_id')
+                self.es.delete(index=self.marker_index,
+                               doc_type=self.marker_doc_type,
+                               id=marker_document_id)
+        self.es.indices.flush(index=self.marker_index)
 
 
 class CopyToIndex(luigi.Task):
@@ -165,6 +227,11 @@ class CopyToIndex(luigi.Task):
     def purge_existing_index(self):
         """ Whether to delete the `index` completely before any reindexing. """
         return False
+
+    @property
+    def marker_index_hist_size(self):
+        """ Number of event log entries in the marker index. 0: unlimited. """
+        return 0
 
     def docs(self):
         """ Return the documents to be indexed. Beside the user defined
@@ -227,7 +294,8 @@ class CopyToIndex(luigi.Task):
             port=self.port,
             index=self.index,
             doc_type=self.doc_type,
-            update_id=self.update_id()
+            update_id=self.update_id(),
+            marker_index_hist_size=self.marker_index_hist_size
          )
 
     def run(self):
