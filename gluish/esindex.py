@@ -118,12 +118,11 @@ class ElasticsearchTarget(luigi.Target):
         but we index the parameters (update_id, target_index, target_doc_type)
         as well for documentation. """
         self.create_marker_index()
-
         self.es.index(index=self.marker_index, doc_type=self.marker_doc_type,
-                 id=self.marker_index_document_id(), body={
-                    'update_id': self.update_id, 'target_index': self.index,
-                    'target_doc_type': self.doc_type,
-                    'date': datetime.datetime.now()})
+                      id=self.marker_index_document_id(), body={
+                      'update_id': self.update_id, 'target_index': self.index,
+                      'target_doc_type': self.doc_type,
+                      'date': datetime.datetime.now()})
         self.es.indices.flush(index=self.marker_index)
         self.ensure_hist_size()
 
