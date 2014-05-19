@@ -13,7 +13,7 @@ from setuptools import setup
 
 
 setup(name='gluish',
-      version='0.1.36',
+      version='0.1.37',
       description='Utils around Luigi.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
@@ -27,7 +27,7 @@ setup(name='gluish',
         'BeautifulSoup==3.2.1',
         'colorama==0.2.7',
         'elasticsearch==1.0.0',
-        'luigi>=1.0.13',
+        'luigi==1.0.16',
         'nose==1.3.1',
         'pyisbn==1.0.0',
         'python-dateutil==2.2',

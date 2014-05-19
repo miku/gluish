@@ -6,6 +6,8 @@ Tests for Elasticsearch target and indexing.
 
 # pylint: disable=C0103,E1101,F0401
 from gluish.esindex import ElasticsearchTarget, CopyToIndex
+import collections
+import datetime
 import elasticsearch
 import luigi
 import unittest
@@ -16,6 +18,7 @@ port = 9200
 index = 'luigi_test'
 doc_type = 'test_type'
 marker_index = 'luigi_test_index_updates'
+marker_doc_type = 'test_entry'
 
 
 def _create_test_index():
@@ -28,6 +31,7 @@ def _create_test_index():
 _create_test_index()
 target = ElasticsearchTarget(host, port, index, doc_type, 'update_id')
 target.marker_index = marker_index
+target.marker_doc_type = marker_doc_type
 
 
 class ElasticsearchTargetTest(unittest.TestCase):
@@ -57,6 +61,7 @@ class CopyToTestIndex(CopyToIndex):
     port = port
     index = index
     doc_type = doc_type
+    marker_index_hist_size = 0
 
     def output(self):
         """ Use a test target with an own marker_index. """
@@ -65,13 +70,15 @@ class CopyToTestIndex(CopyToIndex):
             port=self.port,
             index=self.index,
             doc_type=self.doc_type,
-            update_id=self.update_id()
+            update_id=self.update_id(),
+            marker_index_hist_size=self.marker_index_hist_size
          )
         target.marker_index = marker_index
+        target.marker_doc_type = marker_doc_type
         return target
 
 
-class IndexingTask(CopyToTestIndex):
+class IndexingTask1(CopyToTestIndex):
     """ Test the redundant version, where `_index` and `_type` are
     given in the `docs` as well. A more DRY example is `IndexingTask2`. """
     def docs(self):
@@ -110,16 +117,16 @@ class CopyToIndexTest(unittest.TestCase):
     """ Test indexing tasks. """
 
     def setUp(self):
-        """ Cleanup before starting. """
+        """ Cleanup before each test. """
         _cleanup()
 
     def tearDown(self):
-        """ Remove residues. """
+        """ Remove residues after each test. """
         _cleanup()
 
     def test_copy_to_index(self):
         """ Test a single document upload. """
-        task = IndexingTask()
+        task = IndexingTask1()
         es = elasticsearch.Elasticsearch([{'host': host, 'port': port}])
         self.assertFalse(es.indices.exists(task.index))
         self.assertFalse(task.complete())
@@ -133,7 +140,7 @@ class CopyToIndexTest(unittest.TestCase):
 
     def test_copy_to_index_incrementally(self):
         """ Test two tasks that upload docs into the same index. """
-        task1 = IndexingTask()
+        task1 = IndexingTask1()
         task2 = IndexingTask2()
         es = elasticsearch.Elasticsearch([{'host': host, 'port': port}])
         self.assertFalse(es.indices.exists(task1.index))
@@ -157,12 +164,12 @@ class CopyToIndexTest(unittest.TestCase):
                                         doc_type=task2.doc_type, id=234))
 
     def test_copy_to_index_purge_existing(self):
-        task1 = IndexingTask()
+        task1 = IndexingTask1()
         task2 = IndexingTask2()
         task3 = IndexingTask3()
-        es = elasticsearch.Elasticsearch([{'host': host, 'port': port}])
         luigi.build([task1, task2], local_scheduler=True)
         luigi.build([task3], local_scheduler=True)
+        es = elasticsearch.Elasticsearch([{'host': host, 'port': port}])
         self.assertTrue(es.indices.exists(task3.index))
         self.assertTrue(task3.complete())
         self.assertEquals(1, es.count(index=task3.index).get('count'))
@@ -170,3 +177,104 @@ class CopyToIndexTest(unittest.TestCase):
         self.assertEquals({u'date': u'today', u'name': u'yet another'},
                           es.get_source(index=task3.index,
                                         doc_type=task3.doc_type, id=234))
+
+
+class MarkerIndexTest(unittest.TestCase):
+
+    def setUp(self):
+        """ Cleanup before each test. """
+        _cleanup()
+
+    def tearDown(self):
+        """ Remove residues after each test. """
+        _cleanup()
+
+    def test_update_marker_has_date(self):
+        es = elasticsearch.Elasticsearch()
+        with self.assertRaises(elasticsearch.NotFoundError):
+            result = es.count(index=marker_index, doc_type=marker_doc_type,
+                              body={'query': {'match_all': {}}})
+
+        task1 = IndexingTask1()
+        luigi.build([task1], local_scheduler=True)
+
+        result = es.count(index=marker_index, doc_type=marker_doc_type,
+                           body={'query': {'match_all': {}}})
+        self.assertEquals(1, result.get('count'))
+
+        result = es.search(index=marker_index, doc_type=marker_doc_type,
+                           body={'query': {'match_all': {}}})
+        marker_doc = result.get('hits').get('hits')[0].get('_source')
+        self.assertEquals('IndexingTask1()', marker_doc.get('update_id'))
+        self.assertEquals('luigi_test', marker_doc.get('target_index'))
+        self.assertEquals('test_type', marker_doc.get('target_doc_type'))
+        self.assertTrue('date' in marker_doc)
+
+        task2 = IndexingTask2()
+        luigi.build([task2], local_scheduler=True)
+
+        result = es.count(index=marker_index, doc_type=marker_doc_type,
+                           body={'query': {'match_all': {}}})
+        self.assertEquals(2, result.get('count'))
+
+
+        result = es.search(index=marker_index, doc_type=marker_doc_type,
+                           body={'query': {'match_all': {}}})
+        hits = result.get('hits').get('hits')
+        Entry = collections.namedtuple('Entry', ['date', 'update_id'])
+        dates_update_id = []
+        for hit in hits:
+            source = hit.get('_source')
+            update_id = source.get('update_id')
+            date = source.get('date')
+            dates_update_id.append(Entry(date, update_id))
+
+        it = iter(sorted(dates_update_id))
+        first = it.next()
+        second = it.next()
+        self.assertTrue(first.date < second.date)
+        self.assertEquals(first.update_id, 'IndexingTask1()')
+        self.assertEquals(second.update_id, 'IndexingTask2()')
+
+
+class IndexingTask4(CopyToTestIndex):
+    """ Just another task. """
+    date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
+    marker_index_hist_size = 1
+
+    def docs(self):
+        """ Return a list with a single doc. """
+        return [{'_id': 234, '_index': self.index, '_type': self.doc_type,
+                 'name': 'another', 'date': 'today'}]
+
+class IndexHistSizeTest(unittest.TestCase):
+
+    def setUp(self):
+        """ Cleanup before each test. """
+        _cleanup()
+
+    def tearDown(self):
+        """ Remove residues after each test. """
+        _cleanup()
+
+    def test_limited_history(self):
+
+        task4_1 = IndexingTask4(date=datetime.date(2000, 1, 1))
+        luigi.build([task4_1], local_scheduler=True)
+
+        task4_2 = IndexingTask4(date=datetime.date(2001, 1, 1))
+        luigi.build([task4_2], local_scheduler=True)
+
+        task4_3 = IndexingTask4(date=datetime.date(2002, 1, 1))
+        luigi.build([task4_3], local_scheduler=True)
+
+        es = elasticsearch.Elasticsearch()
+
+        result = es.count(index=marker_index, doc_type=marker_doc_type,
+                          body={'query': {'match_all': {}}})
+        self.assertEquals(1, result.get('count'))
+        marker_index_document_id = task4_3.output().marker_index_document_id()
+        result = es.get(id=marker_index_document_id, index=marker_index,
+                        doc_type=marker_doc_type)
+        self.assertEquals('IndexingTask4(date=2002-01-01)',
+                          result.get('_source').get('update_id'))
