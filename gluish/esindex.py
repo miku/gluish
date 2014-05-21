@@ -97,6 +97,7 @@ class ElasticsearchTarget(luigi.Target):
             index (str): Index name
             doc_type (str): Doctype name
             update_id (str): An identifier for this data set
+            marker_index_hist_size (int): List of changes to the index to remember
         """
         self.host = host
         self.port = port
