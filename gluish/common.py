@@ -164,8 +164,8 @@ class FTPMirror(CommonTask):
     A generic FTP directory sync. Outsource to lftp.
     """
     host = luigi.Parameter()
-    username = luigi.Parameter()
-    password = luigi.Parameter()
+    username = luigi.Parameter(default='anonymous')
+    password = luigi.Parameter(default='')
     pattern = luigi.Parameter(default='*', description="e.g. '*leip_*.zip'")
     base = luigi.Parameter(default='.')
     indicator = luigi.Parameter(default=random_string())

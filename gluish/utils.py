@@ -164,7 +164,7 @@ def shellout(template, **kwargs):
     ignoremap = kwargs.get('ignoremap', {})
     command = template.format(**kwargs)
     if not preserve_spaces:
-        command = re.sub('[ \n]+', ' ', command)
+        command = re.sub('[ \t\n]+', ' ', command)
     logger.debug(cyan(command))
     code = subprocess.call([command], shell=True)
     if not code == 0:
