@@ -235,6 +235,11 @@ class CopyToIndex(luigi.Task):
         """ Number of event log entries in the marker index. 0: unlimited. """
         return 0
 
+    @property
+    def timeout(self):
+        """ Timeout. """
+        return 10
+
     def docs(self):
         """ Return the documents to be indexed. Beside the user defined
         fields, the document may contain an `_index`, `_type` and `_id`. """
@@ -312,7 +317,8 @@ class CopyToIndex(luigi.Task):
             self.delete_index()
         self.create_index()
         es = elasticsearch.Elasticsearch([{'host': self.host,
-                                           'port': self.port}])
+                                           'port': self.port}],
+                                         timeout=self.timeout)
         if self.mapping:
             es.indices.put_mapping(index=self.index, doc_type=self.doc_type,
                                    body=self.mapping)
