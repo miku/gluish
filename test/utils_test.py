@@ -7,7 +7,7 @@ Test mixed utils.
 # pylint: disable=C0103
 from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
-                          shellout, parse_isbns, memoize)
+                          shellout, parse_isbns, memoize, DefaultOrderedDict)
 import collections
 import datetime
 import os
@@ -146,3 +146,18 @@ class DotDictTest(unittest.TestCase):
         self.assertEquals({'d': 3}, dd.c)
         self.assertEquals(3, dd.c.d)
         self.assertEquals(4, dd.e.f.g)
+
+
+class DefaultOrderedDictTest(unittest.TestCase):
+    """ Test DefaultOrderedDict. """
+    def test_default_ordered_dict(self):
+        d = DefaultOrderedDict(list)
+        d[0].append(0)
+        d[1].append(2)
+        d[2].append(4)
+        d[3].append(6)
+        d[4].append(8)
+        for i in range(5):
+            self.assertEquals(d[i], [i * 2])
+        keys = [k for k, _ in d.iteritems()]
+        self.assertEquals(range(5), keys)
