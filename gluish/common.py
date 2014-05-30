@@ -64,6 +64,14 @@ class Indices(CommonTask):
         return False
 
 
+class ElasticsearchMixin(luigi.Task):
+    """ A small mixin for tasks that require an ES connection. """
+    es_host = luigi.Parameter(default='localhost', significant=False,
+                              description='elasticsearch host')
+    es_port = luigi.IntParameter(default=9200, significant=False,
+                                 description='elasticsearch port')
+
+
 class SplitFile(CommonTask):
     """
     Idempotent wrapper around split -l.
