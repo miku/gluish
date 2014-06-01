@@ -13,7 +13,7 @@ from setuptools import setup
 
 
 setup(name='gluish',
-      version='0.1.40',
+      version='0.1.41',
       description='Utils around Luigi.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
