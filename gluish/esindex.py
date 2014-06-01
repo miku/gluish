@@ -217,6 +217,11 @@ class CopyToIndex(luigi.Task):
         return None
 
     @property
+    def settings(self):
+        """ Settings to be used at index creation time. """
+        return {'settings': {}}
+
+    @property
     def chunk_size(self):
         """ Single API call for this number of docs. """
         return 2000
@@ -279,7 +284,7 @@ class CopyToIndex(luigi.Task):
         es = elasticsearch.Elasticsearch([{'host': self.host,
                                            'port': self.port}])
         if not es.indices.exists(index=self.index):
-            es.indices.create(index=self.index)
+            es.indices.create(index=self.index, body=self.settings)
 
     def delete_index(self):
         """ Delete the index, if it exists. """
