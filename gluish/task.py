@@ -38,6 +38,8 @@ class BaseTask(luigi.Task):
     def closest(self):
         """ Return the closest date for a given date.
         Defaults to the same date. """
+        if not hasattr(self, 'date'):
+            raise AttributeError('Task has no date attribute.')
         return self.date
 
     def path(self, filename=None, ext='tsv', digest=False):
