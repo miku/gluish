@@ -63,9 +63,8 @@ class BaseTask(luigi.Task):
         task_name, task_params = id_to_name_and_params(self.task_id)
 
         if filename is None:
-            if 'date' in task_params:
-                if is_closest_date_parameter(self, 'date'):
-                    task_params['date'] = self.closest()
+            if 'date' in task_params and is_closest_date_parameter(self, 'date'):
+                task_params['date'] = self.closest()
 
             parts = ('{k}-{v}'.format(k=k, v=v)
                      for k, v in task_params.iteritems())
