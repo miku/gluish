@@ -241,3 +241,7 @@ class TaskTest(unittest.TestCase):
         luigi.build([task], local_scheduler=True)
         self.assertEquals(task.output().open().read(), '1\n')
 
+    def test_effective_id(self):
+        task = TaskK()
+        self.assertEquals('TaskK(date=2000-01-01)', task.task_id)
+        self.assertEquals('TaskK(date=10.1)', task.effective_task_id())

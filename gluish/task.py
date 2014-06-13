@@ -42,6 +42,15 @@ class BaseTask(luigi.Task):
             raise AttributeError('Task has no date attribute.')
         return self.date
 
+    def effective_task_id(self):
+        """ Replace date in task id with closest date. """
+        task_name, task_params = id_to_name_and_params(self.task_id)
+
+        if 'date' in task_params and is_closest_date_parameter(self, 'date'):
+            task_params['date'] = self.closest()
+        task_id_parts = ['%s=%s' % (k, v) for k, v in task_params.iteritems()]
+        return '%s(%s)' % (self.task_family, ', '.join(task_id_parts))
+
     def path(self, filename=None, ext='tsv', digest=False):
         """
         Return the path for this class with a certain set of parameters.
