@@ -48,8 +48,10 @@ class BaseTask(luigi.Task):
 
         if 'date' in task_params and is_closest_date_parameter(self, 'date'):
             task_params['date'] = self.closest()
-        task_id_parts = ['%s=%s' % (k, v) for k, v in task_params.iteritems()]
-        return '%s(%s)' % (self.task_family, ', '.join(task_id_parts))
+            task_id_parts = ['%s=%s' % (k, v) for k, v in task_params.iteritems()]
+            return '%s(%s)' % (self.task_family, ', '.join(task_id_parts))
+        else:
+            return self.task_id
 
     def path(self, filename=None, ext='tsv', digest=False):
         """

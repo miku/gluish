@@ -260,8 +260,13 @@ class TaskTest(unittest.TestCase):
         task = TaskK()
         self.assertEquals('TaskK(date=2000-01-01)', task.task_id)
         self.assertEquals('TaskK(date=10.1)', task.effective_task_id())
+
         task = TaskM()
         self.assertEquals('TaskM(a=1, b=2, c=hello, date=2000-01-01)',
                           task.task_id)
         self.assertEquals('TaskM(a=1, date=10.1, c=hello, b=2)',
                           task.effective_task_id())
+
+        task = TaskG()
+        self.assertEquals('TaskG(date=2000-01-01)', task.task_id)
+        self.assertEquals('TaskG(date=2000-01-01)', task.effective_task_id())
