@@ -166,6 +166,21 @@ class TaskL(TestTask):
         return luigi.LocalTarget(path=self.path())
 
 
+class TaskM(TestTask):
+    """ Task that returns a float from closest. """
+    a = luigi.IntParameter(default=1)
+    b = luigi.IntParameter(default=2)
+    c = luigi.Parameter(default='hello')
+    date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
+
+    def closest(self):
+        return 10.10
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
+
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
 
@@ -241,3 +256,17 @@ class TaskTest(unittest.TestCase):
         luigi.build([task], local_scheduler=True)
         self.assertEquals(task.output().open().read(), '1\n')
 
+    def test_effective_id(self):
+        task = TaskK()
+        self.assertEquals('TaskK(date=2000-01-01)', task.task_id)
+        self.assertEquals('TaskK(date=10.1)', task.effective_task_id())
+
+        task = TaskM()
+        self.assertEquals('TaskM(a=1, b=2, c=hello, date=2000-01-01)',
+                          task.task_id)
+        self.assertEquals('TaskM(a=1, date=10.1, c=hello, b=2)',
+                          task.effective_task_id())
+
+        task = TaskG()
+        self.assertEquals('TaskG(date=2000-01-01)', task.task_id)
+        self.assertEquals('TaskG(date=2000-01-01)', task.effective_task_id())

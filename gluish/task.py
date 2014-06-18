@@ -38,7 +38,20 @@ class BaseTask(luigi.Task):
     def closest(self):
         """ Return the closest date for a given date.
         Defaults to the same date. """
+        if not hasattr(self, 'date'):
+            raise AttributeError('Task has no date attribute.')
         return self.date
+
+    def effective_task_id(self):
+        """ Replace date in task id with closest date. """
+        task_name, task_params = id_to_name_and_params(self.task_id)
+
+        if 'date' in task_params and is_closest_date_parameter(self, 'date'):
+            task_params['date'] = self.closest()
+            task_id_parts = ['%s=%s' % (k, v) for k, v in task_params.iteritems()]
+            return '%s(%s)' % (self.task_family, ', '.join(task_id_parts))
+        else:
+            return self.task_id
 
     def path(self, filename=None, ext='tsv', digest=False):
         """
@@ -52,9 +65,8 @@ class BaseTask(luigi.Task):
         task_name, task_params = id_to_name_and_params(self.task_id)
 
         if filename is None:
-            if 'date' in task_params:
-                if is_closest_date_parameter(self, 'date'):
-                    task_params['date'] = self.closest()
+            if 'date' in task_params and is_closest_date_parameter(self, 'date'):
+                task_params['date'] = self.closest()
 
             parts = ('{k}-{v}'.format(k=k, v=v)
                      for k, v in task_params.iteritems())
