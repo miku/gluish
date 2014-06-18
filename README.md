@@ -173,7 +173,7 @@ class MirrorTask(DefaultTask):
         return luigi.LocalTarget(path=self.path())
 ```
 
-The output of `FTPMirror` is a single file, that contains the paths to all mirrored files, one per line.
+The output of `FTPMirror` is a **single file**, that contains the paths to all mirrored files, one per line.
 
 A short self contained example can be found in [this gist](https://gist.github.com/miku/4d7e9589e63182f88509).
 
@@ -189,7 +189,7 @@ Consider for example a workflow involving an FTP server.
 
 A data source is fetched from FTP, but it is not known, when updates are
 supplied. So the FTP server needs to be checked in regular intervals.
-Dependent tasks do not need to be updates as long as there is nothing new
+Dependent tasks do not need to be updated as long as there is nothing new
 on the FTP server.
 
 To map an arbitrary date to the *closest* date in the past, where an update
@@ -222,7 +222,7 @@ class SimpleTask(DefaultTask):
 
 ```
 
-A short, self contained can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
+A short, self contained example can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
 
 If `task.closest` is a relatively expensive operation (FTP mirror, rsync)
 and the workflow uses a lot of `ClosestDateParameter` type of parameters, it is
