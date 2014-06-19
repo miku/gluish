@@ -164,3 +164,10 @@ def random_tmp_dir(create=False, prefix='gluish'):
     if create and not os.path.exists(path):
         os.makedirs(path)
     return path
+
+
+def splitext(path):
+    for ext in ('.tar.gz', '.tar.bz2'):
+        if path.endswith(ext):
+            return path[:-len(ext)], path[-len(ext):]
+    return os.path.splitext(path)
