@@ -88,18 +88,25 @@ def ptimed(path=DEFAULT_BENCHMARK_DB):
 
             key = '{}.{}.{}'.format(module, klass, fun)
             value = timer.elapsed_s
+            # just a quick visual impression, everything that takes more
+            # than 10s is yellow, more then 1min, red.
+            status = 'green'
+            if value > 10:
+                status = 'yellow'
+            if value > 60:
+                status = 'red'
 
             if not os.path.exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
             with sqlite3db(path) as cursor:
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS
-                    t (key TEXT, value TEXT, date TEXT)
+                    t (key TEXT, value REAL, date TEXT, status TEXT)
                 """)
                 cursor.execute("""
-                    INSERT INTO t (key, value, date)
-                    VALUES (?, ?, datetime('now'))
-                """, (key, value))
+                    INSERT INTO t (key, value, date, status)
+                    VALUES (?, ?, datetime('now'), ?)
+                """, (key, value, status))
             return result
         return _timed
     return inner
