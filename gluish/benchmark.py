@@ -14,8 +14,10 @@ if available.
 
 from functools import wraps
 from gluish.colors import green, yellow, red
+from gluish.database import sqlite3db
 from timeit import default_timer
 import logging
+import os
 
 logger = logging.getLogger('gluish')
 
@@ -46,7 +48,7 @@ class Timer(object):
 def timed(method):
     """ A @timed decorator. """
     @wraps(method)
-    def timed(*args, **kwargs):
+    def _timed(*args, **kwargs):
         """ Benchmark decorator. """
         with Timer() as timer:
             result = method(*args, **kwargs)
@@ -61,4 +63,43 @@ def timed(method):
         else:
             logger.debug(red(msg))
         return result
-    return timed
+    return _timed
+
+
+DEFAULT_BENCHMARK_DB = os.path.join(os.path.expanduser('~'),
+                                    '.timedb', 'time.db')
+
+def ptimed(path=DEFAULT_BENCHMARK_DB):
+    """
+    A persistent timer. Will write results into a TSV file under
+    $HOME/.timed/data.tsv
+    """
+    def inner(method):
+        """ Real wrapper. """
+        @wraps(method)
+        def _timed(*args, **kwargs):
+            """ Benchmark decorator. """
+            with Timer() as timer:
+                result = method(*args, **kwargs)
+
+            module = args[0].__module__
+            klass = args[0].__class__.__name__
+            fun = method.__name__
+
+            key = '{}.{}.{}'.format(module, klass, fun)
+            value = timer.elapsed_s
+
+            if not os.path.exists(os.path.dirname(path)):
+                os.makedirs(os.path.dirname(path))
+            with sqlite3db(path) as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS
+                    t (key TEXT, value TEXT, date TEXT)
+                """)
+                cursor.execute("""
+                    INSERT INTO t (key, value, date)
+                    VALUES (?, ?, datetime('now'))
+                """, (key, value))
+            return result
+        return _timed
+    return inner
