@@ -12,10 +12,10 @@ Just logs the output. Could be extended to send this information to some service
 if available.
 """
 
-from functools import wraps
 from gluish.colors import green, yellow, red
 from gluish.database import sqlite3db
 from timeit import default_timer
+import functools
 import logging
 import os
 
@@ -47,7 +47,7 @@ class Timer(object):
 
 def timed(method):
     """ A @timed decorator. """
-    @wraps(method)
+    @functools.wraps(method)
     def _timed(*args, **kwargs):
         """ Benchmark decorator. """
         with Timer() as timer:
@@ -69,44 +69,53 @@ def timed(method):
 DEFAULT_BENCHMARK_DB = os.path.join(os.path.expanduser('~'),
                                     '.timedb', 'time.db')
 
-def ptimed(path=DEFAULT_BENCHMARK_DB):
+def ptimed(method=None, path=DEFAULT_BENCHMARK_DB, log=True):
     """
     A persistent timer. Will write results into a TSV file under
     $HOME/.timed/data.tsv
     """
-    def inner(method):
-        """ Real wrapper. """
-        @wraps(method)
-        def _timed(*args, **kwargs):
-            """ Benchmark decorator. """
-            with Timer() as timer:
-                result = method(*args, **kwargs)
+    if method is None:
+        return functools.partial(ptimed, path=path, log=log)
+    @functools.wraps(method)
+    def decorator(*args, **kwargs):
+        """ Benchmark decorator. """
+        with Timer() as timer:
+            result = method(*args, **kwargs)
 
-            module = args[0].__module__
-            klass = args[0].__class__.__name__
-            fun = method.__name__
+        module = args[0].__module__
+        klass = args[0].__class__.__name__
+        fun = method.__name__
 
-            key = '{}.{}.{}'.format(module, klass, fun)
-            value = timer.elapsed_s
-            # just a quick visual impression, everything that takes more
-            # than 10s is yellow, more then 1min, red.
-            status = 'green'
-            if value > 10:
-                status = 'yellow'
-            if value > 60:
-                status = 'red'
+        key = '{}.{}.{}'.format(module, klass, fun)
+        value = timer.elapsed_s
+        # just a quick visual impression, everything that takes more
+        # than 10s is yellow, more then 1min, red.
+        status = 'green'
+        if value > 10:
+            status = 'yellow'
+        if value > 60:
+            status = 'red'
 
-            if not os.path.exists(os.path.dirname(path)):
-                os.makedirs(os.path.dirname(path))
-            with sqlite3db(path) as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS
-                    t (key TEXT, value REAL, date TEXT, status TEXT)
-                """)
-                cursor.execute("""
-                    INSERT INTO t (key, value, date, status)
-                    VALUES (?, ?, datetime('now'), ?)
-                """, (key, value, status))
-            return result
-        return _timed
-    return inner
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+        with sqlite3db(path) as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS
+                t (key TEXT, value REAL, date TEXT, status TEXT)
+            """)
+            cursor.execute("""
+                INSERT INTO t (key, value, date, status)
+                VALUES (?, ?, datetime('now'), ?)
+            """, (key, value, status))
+
+        if log is True:
+            msg = '[%s.%s] %0.5f' % (klass, fun, timer.elapsed_s)
+            if timer.elapsed_s <= timer.green:
+                logger.debug(green(msg))
+            elif timer.elapsed_s <= timer.yellow:
+                logger.debug(yellow(msg))
+            else:
+                logger.debug(red(msg))
+
+        return result
+    return decorator
