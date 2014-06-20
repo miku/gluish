@@ -1,7 +1,7 @@
 Gluish
 ======
 
-[![Build Status](https://travis-ci.org/miku/gluish.png)](https://travis-ci.org/miku/gluish)
+[![Build Status](https://travis-ci.org/miku/gluish.png)](https://travis-ci.org/miku/gluish) [![Requirements Status](https://requires.io/github/miku/gluish/requirements.png?branch=master)](https://requires.io/github/miku/gluish/requirements/?branch=master)
 
 Some glue around [luigi](https://github.com/spotify/luigi).
 
