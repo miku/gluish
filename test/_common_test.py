@@ -7,7 +7,7 @@ Common tests.
 from gluish import GLUISH_DATA
 from gluish.common import (LineCount, Executable, SplitFile, OAIHarvestChunk,
                            FTPMirror, FTPFile, Directory, FXRates,
-                           IndexIsbnList, IndexIdList)
+                           IndexIsbnList, IndexIdList, IndexFieldList)
 from gluish.esindex import CopyToIndex
 from gluish.format import TSV
 from gluish.path import unlink, wc
@@ -324,3 +324,27 @@ class IndexIdTest(unittest.TestCase):
             index, id = handle.iter_tsv(cols=('index', 'id')).next()
         self.assertEquals(index, 'testisbn')
         self.assertEquals(id, '12345')
+
+
+class IndexFieldTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        _test_index_cleanup()
+
+    @classmethod
+    def tearDownClass(cls):
+        _test_index_cleanup()
+
+    def test_index_field(self):
+        task = SampleIndex()
+        luigi.build([task], local_scheduler=True)
+
+        task = IndexFieldList(index='testisbn', doc_type='default',
+                              field='content.020.z')
+        luigi.build([task], local_scheduler=True)
+
+        with task.output().open() as handle:
+            id, value = handle.iter_tsv(cols=('id', 'value')).next()
+        self.assertEquals(id, '12345')
+        self.assertEquals(value, '0-121-34960-1')

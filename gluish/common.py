@@ -357,3 +357,43 @@ class IndexIdList(CommonTask):
 
     def output(self):
         return luigi.LocalTarget(path=self.path(), format=TSV)
+
+
+class IndexFieldList(CommonTask):
+    """
+    Dump a list of ids and some specified field as TSV.
+    """
+    date = luigi.DateParameter(default=datetime.date.today())
+    index = luigi.Parameter(description='index name')
+    doc_type = luigi.Parameter(description='document type', default='default')
+    field = luigi.Parameter(description='the field to dump', default='meta.date')
+
+    raise_on_error = luigi.BooleanParameter(default=False,
+                                            description='raise exception on missing values',
+                                            significant=False)
+    timeout = luigi.IntParameter(default=30, significant=False)
+    size = luigi.IntParameter(default=50000, significant=False)
+    scroll = luigi.Parameter(default='10m', significant=False)
+
+    @timed
+    def run(self):
+        es = elasticsearch.Elasticsearch(timeout=self.timeout)
+        hits = eshelpers.scan(es, {'query': {'match_all': {}},
+            'fields': [self.field]}, index=self.index, doc_type=self.doc_type,
+            scroll=self.scroll, size=self.size)
+        with self.output().open('w') as output:
+            for hit in hits:
+                fields = hit.get('fields')
+                if not fields[self.field]:
+                    if self.raise_on_error:
+                        raise RuntimeError("BSZ document without meta.date")
+                    else:
+                        continue
+                else:
+                    if isinstance(fields[self.field], basestring):
+                        output.write_tsv(hit['_id'], fields[self.field])
+                    else:
+                        output.write_tsv(hit['_id'], fields[self.field][0])
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path(), format=TSV)
