@@ -57,6 +57,14 @@ index. Keep all updates by default (0). Use 1 to only remember the most recent
 update to the index. This can be useful, if an index needs to recreated, even
 though the corresponding indexing task has been run sometime in the past - but
 a later indexing task might have altered the index in the meantime.
+
+There are a few luigi `client.cfg` configuration options:
+
+    [elasticsearch]
+
+    marker-index = update_log
+    marker-doc-type = entry
+
 """
 
 # pylint: disable=F0401,E1101,C0103
@@ -116,7 +124,10 @@ class ElasticsearchTarget(luigi.Target):
 
     def touch(self):
         """ Mark this update as complete. The document id would be sufficent,
-        but we index the parameters (update_id, target_index, target_doc_type)
+        but we index the parameters
+
+            (update_id, target_index, target_doc_type, date)
+
         as well for documentation. """
         self.create_marker_index()
         self.es.index(index=self.marker_index, doc_type=self.marker_doc_type,
@@ -232,7 +243,7 @@ class CopyToIndex(luigi.Task):
 
     @property
     def purge_existing_index(self):
-        """ Whether to delete the `index` completely before any reindexing. """
+        """ Whether to delete the `index` completely before any indexing. """
         return False
 
     @property
