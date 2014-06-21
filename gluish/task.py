@@ -53,11 +53,13 @@ class BaseTask(luigi.Task):
         else:
             return self.task_id
 
-    def path(self, filename=None, ext='tsv', digest=False):
+    def path(self, filename=None, ext='tsv', digest=False, shard=False):
         """
         Return the path for this class with a certain set of parameters.
         `ext` sets the extension of the file.
         If `hash` is true, the filename (w/o extenstion) will be hashed.
+        If `shard` is true, the files are placed in shards, based on the first
+        two chars of the filename (hashed).
         """
         if self.TAG is NotImplemented or self.BASE is NotImplemented:
             raise RuntimeError('TAG and BASE must be set.')
@@ -80,6 +82,10 @@ class BaseTask(luigi.Task):
                 filename = '{fn}'.format(ext=ext, fn=name)
             else:
                 filename = '{fn}.{ext}'.format(ext=ext, fn=name)
+            if shard:
+                prefix = hashlib.sha1(filename).hexdigest()[:2]
+                return os.path.join(unicode(self.BASE), unicode(self.TAG),
+                                    task_name, prefix, filename)
 
         return os.path.join(unicode(self.BASE), unicode(self.TAG), task_name,
                             filename)

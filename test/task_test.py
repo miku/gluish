@@ -5,7 +5,7 @@
 Test tasks.
 """
 
-# pylint: disable=E1101,W0232
+# pylint: disable=E1101,W0232,R0904
 from gluish import GLUISH_DATA
 from gluish.task import BaseTask, MockTask, is_closest_date_parameter
 from gluish.parameter import ClosestDateParameter
@@ -181,6 +181,18 @@ class TaskM(TestTask):
         return luigi.LocalTarget(path=self.path())
 
 
+class ShardedTask(TestTask):
+    """ Example task, that shards its outputs. """
+    param = luigi.Parameter(default='Hello')
+    
+    def run(self):
+        """ Dummy run. """
+
+    def output(self):
+        """ Use shard=True """
+        return luigi.LocalTarget(path=self.path(shard=True))
+
+
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
 
@@ -257,6 +269,7 @@ class TaskTest(unittest.TestCase):
         self.assertEquals(task.output().open().read(), '1\n')
 
     def test_effective_id(self):
+        """ Test effective_task_id """
         task = TaskK()
         self.assertEquals('TaskK(date=2000-01-01)', task.task_id)
         self.assertEquals('TaskK(date=10.1)', task.effective_task_id())
@@ -270,3 +283,10 @@ class TaskTest(unittest.TestCase):
         task = TaskG()
         self.assertEquals('TaskG(date=2000-01-01)', task.task_id)
         self.assertEquals('TaskG(date=2000-01-01)', task.effective_task_id())
+
+    def test_sharded_task(self):
+        """ Test, if task output is sharded. """
+        task = ShardedTask(param="Hello")
+        self.assertTrue(task.output().path.endswith("62/param-Hello.tsv"))
+        task = ShardedTask(param="Hi")
+        self.assertTrue(task.output().path.endswith("1c/param-Hi.tsv"))
