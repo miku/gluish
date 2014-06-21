@@ -114,10 +114,13 @@ class OAIHarvestChunkTest(unittest.TestCase):
     def test_harvest(self):
         task = SampleHarvestChunk()
         luigi.build([task], local_scheduler=True)
-        want = BeautifulSoup.BeautifulStoneSoup(
-            open(os.path.join(FIXTURES, 'sample_bnf_oai_response.xml')).read())
+        want_path = os.path.join(FIXTURES, 'sample_bnf_oai_response_2014_06_18.xml')
+        want = BeautifulSoup.BeautifulStoneSoup(open(want_path).read())
         got = BeautifulSoup.BeautifulStoneSoup(task.output().open().read())
-        self.assertEquals(want.prettify(), got.prettify())
+        _, temp = tempfile.mkstemp()
+        task.output().copy(temp)
+        self.assertEquals(want.prettify(), got.prettify(), msg='diff '
+                          '{} {}'.format(want_path, temp))
 
 
 class MirrorTask(TestTask):
