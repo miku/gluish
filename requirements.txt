@@ -9,5 +9,5 @@ python-dateutil==2.2
 requests==2.3.0
 six==1.7.2
 sqlitebck==1.2.1
-urllib3==1.8.2 
+urllib3==1.8.3
 wsgiref==0.1.2
