@@ -12,6 +12,14 @@ Usage:
 
 import datetime
 
+def every_minute(dt=datetime.datetime.now()):
+    """ just pass on the given date """
+    return datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 1)
+
+def hourly(dt=datetime.datetime.now()):
+    """ get a new datetime object every hour """
+    return datetime.datetime(dt.year, dt.month, dt.day, dt.hour, 1, 1)
+
 def daily(date=datetime.date.today()):
     """ just pass on the given date """
     return date
@@ -33,7 +41,9 @@ def quarterly(date=datetime.date.today()):
     return datetime.date(date.year, ((date.month - 1)//3) * 3 + 1, 1)
 
 def semiyearly(date=datetime.date.today()):
+    """ twice a year """
     return datetime.date(date.year, 1 if date.day < 7 else 7, 1)
 
 def yearly(date=datetime.date.today()):
+    """ once a year """
     return datetime.date(date.year, 1, 1)

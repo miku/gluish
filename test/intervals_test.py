@@ -4,8 +4,8 @@
 Test intervals.
 """
 
-from gluish.intervals import (daily, weekly, biweekly, monthly, quarterly,
-                              semiyearly, yearly)
+from gluish.intervals import (every_minute, hourly, daily, weekly, biweekly,
+                              monthly, quarterly, semiyearly, yearly)
 import datetime
 import unittest
 
@@ -13,6 +13,15 @@ class IntervalsTest(unittest.TestCase):
     """ Test intervals. """
     def test_intervals(self):
         """ Basic intervals tests. """
+
+        self.assertEquals(
+            datetime.datetime(2000, 12, 3, 10, 10, 1),
+            every_minute(datetime.datetime(2000, 12, 3, 10, 10, 10)))
+
+        self.assertEquals(
+            datetime.datetime(2000, 12, 3, 10, 1, 1),
+            hourly(datetime.datetime(2000, 12, 3, 10, 10, 10)))
+
         self.assertEquals(
             datetime.date(2000, 12, 3),
             daily(datetime.date(2000, 12, 3)))
