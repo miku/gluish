@@ -14,9 +14,8 @@ import unittest
 
 class IntervalsTest(unittest.TestCase):
     """ Test intervals. """
-    def test_intervals(self):
-        """ Basic intervals tests. """
 
+    def test_short_intervals(self):
         dt = datetime.datetime(2000, 12, 3, 10, 10, 10, 0, pytz.utc)
         self.assertEquals('975834601', every_minute(dt, fmt='%s'))
 
@@ -28,6 +27,11 @@ class IntervalsTest(unittest.TestCase):
 
         dt = datetime.datetime(2014, 6, 24, 12, 59, 59, 0, pytz.utc)
         self.assertEquals('1403607661', hourly(dt, fmt='%s'))
+
+    test_short_intervals.notravis = 1
+
+    def test_intervals(self):
+        """ Basic intervals tests. """
 
         self.assertEquals(
             datetime.datetime(2000, 12, 3, 10, 10, 1, 0, pytz.utc),
