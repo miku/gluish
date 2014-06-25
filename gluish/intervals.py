@@ -6,18 +6,18 @@ Various intervals.
 
 import datetime
 
-def every_minute(dt=datetime.datetime.now(), fmt=None):
+def every_minute(dt=datetime.datetime.utcnow(), fmt=None):
     """ just pass on the given date
     - why not minutely? http://english.stackexchange.com/q/3091/222 """
-    date = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 1)
+    date = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 1, 0, dt.tzinfo)
     if fmt is None:
         return date
     else:
         return date.strftime(fmt)
 
-def hourly(dt=datetime.datetime.now(), fmt=None):
+def hourly(dt=datetime.datetime.utcnow(), fmt=None):
     """ get a new datetime object every hour """
-    date = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, 1, 1)
+    date = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, 1, 1, 0, dt.tzinfo)
     if fmt is None:
         return date
     else:

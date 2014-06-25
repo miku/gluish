@@ -17,39 +17,25 @@ class IntervalsTest(unittest.TestCase):
     def test_intervals(self):
         """ Basic intervals tests. """
 
-        tz = tzlocal()
+        dt = datetime.datetime(2000, 12, 3, 10, 10, 10, 0, pytz.utc)
+        self.assertEquals('975834601', every_minute(dt, fmt='%s'))
 
-        dt = datetime.datetime(2000, 12, 3, 10, 10, 10)
-        local_dt = dt.replace(tzinfo=tz)
+        dt = datetime.datetime(2014, 6, 24, 13, 57, 59, 0, pytz.utc)
+        self.assertEquals('1403611261', hourly(dt, fmt='%s'))
 
-        self.assertEquals('975831001',
-            every_minute(local_dt.astimezone(pytz.utc), fmt='%s'))
+        dt = datetime.datetime(2014, 6, 24, 13, 1, 1, 0, pytz.utc)
+        self.assertEquals('1403611261', hourly(dt, fmt='%s'))
 
-        dt = datetime.datetime(2014, 6, 24, 13, 57, 59)
-        local_dt = dt.replace(tzinfo=tz)
-
-        self.assertEquals('1403600461',
-            hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
-
-        dt = datetime.datetime(2014, 6, 24, 13, 1, 1)
-        local_dt = dt.replace(tzinfo=tz)
-
-        self.assertEquals('1403600461',
-            hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
-
-        dt = datetime.datetime(2014, 6, 24, 12, 59, 59)
-        local_dt = dt.replace(tzinfo=tz)
-
-        self.assertEquals('1403596861',
-            hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
+        dt = datetime.datetime(2014, 6, 24, 12, 59, 59, 0, pytz.utc)
+        self.assertEquals('1403607661', hourly(dt, fmt='%s'))
 
         self.assertEquals(
-            datetime.datetime(2000, 12, 3, 10, 10, 1),
-            every_minute(datetime.datetime(2000, 12, 3, 10, 10, 10)))
+            datetime.datetime(2000, 12, 3, 10, 10, 1, 0, pytz.utc),
+            every_minute(datetime.datetime(2000, 12, 3, 10, 10, 10, 0, pytz.utc)))
 
         self.assertEquals(
-            datetime.datetime(2000, 12, 3, 10, 1, 1),
-            hourly(datetime.datetime(2000, 12, 3, 10, 10, 10)))
+            datetime.datetime(2000, 12, 3, 10, 1, 1, 0, pytz.utc),
+            hourly(datetime.datetime(2000, 12, 3, 10, 10, 10, 0, pytz.utc)))
 
 #
 # Daily or less often
