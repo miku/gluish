@@ -9,6 +9,7 @@ from gluish.benchmark import Timer
 from gluish.database import sqlite3db
 import datetime
 import os
+import pytz
 import tempfile
 import unittest
 
@@ -57,4 +58,6 @@ class BenchmarkTest(unittest.TestCase):
             self.assertTrue(0 < elapsed)
             self.assertTrue(1 > elapsed)
             self.assertEquals('green', status)
-            self.assertTrue(added.startswith(str(datetime.date.today())))
+            today = datetime.datetime.now(pytz.utc).date()
+            self.assertTrue(added.startswith(str(today)),
+                            msg='added={}, today={}'.format(added, today))
