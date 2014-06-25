@@ -14,6 +14,15 @@ class IntervalsTest(unittest.TestCase):
     def test_intervals(self):
         """ Basic intervals tests. """
 
+        self.assertEquals('975834601',
+            every_minute(datetime.datetime(2000, 12, 3, 10, 10, 10), fmt='%s'))
+        self.assertEquals('1403607661',
+            hourly(datetime.datetime(2014, 6, 24, 13, 57, 59), fmt='%s'))
+        self.assertEquals('1403607661',
+            hourly(datetime.datetime(2014, 6, 24, 13, 1, 1), fmt='%s'))
+        self.assertEquals('1403604061',
+            hourly(datetime.datetime(2014, 6, 24, 12, 59, 59), fmt='%s'))
+
         self.assertEquals(
             datetime.datetime(2000, 12, 3, 10, 10, 1),
             every_minute(datetime.datetime(2000, 12, 3, 10, 10, 10)))
