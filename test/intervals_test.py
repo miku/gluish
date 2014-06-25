@@ -7,6 +7,7 @@ Test intervals.
 
 from gluish.intervals import (every_minute, hourly, daily, weekly, biweekly,
                               monthly, quarterly, semiyearly, yearly)
+from dateutil.tz import tzlocal
 import datetime
 import pytz
 import unittest
@@ -16,28 +17,28 @@ class IntervalsTest(unittest.TestCase):
     def test_intervals(self):
         """ Basic intervals tests. """
 
-        tz = pytz.timezone('Europe/Berlin')
+        tz = tzlocal()
 
         dt = datetime.datetime(2000, 12, 3, 10, 10, 10)
-        local_dt = tz.localize(dt)
+        local_dt = dt.replace(tzinfo=tz)
 
         self.assertEquals('975831001',
             every_minute(local_dt.astimezone(pytz.utc), fmt='%s'))
 
         dt = datetime.datetime(2014, 6, 24, 13, 57, 59)
-        local_dt = tz.localize(dt)
+        local_dt = dt.replace(tzinfo=tz)
 
         self.assertEquals('1403600461',
             hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
 
         dt = datetime.datetime(2014, 6, 24, 13, 1, 1)
-        local_dt = tz.localize(dt)
+        local_dt = dt.replace(tzinfo=tz)
 
         self.assertEquals('1403600461',
             hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
 
         dt = datetime.datetime(2014, 6, 24, 12, 59, 59)
-        local_dt = tz.localize(dt)
+        local_dt = dt.replace(tzinfo=tz)
 
         self.assertEquals('1403596861',
             hourly(local_dt.astimezone(pytz.utc), fmt='%s'))
