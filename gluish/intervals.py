@@ -1,19 +1,14 @@
 # coding: utf-8
 
 """
-Intervals for luigi.DateParameter.
-
-Usage:
-
-    # run this on the 1st of every month ...
-    date = luigi.DateParameter(date=intervals.monthly())
-
+Various intervals.
 """
 
 import datetime
 
 def every_minute(dt=datetime.datetime.now()):
-    """ just pass on the given date """
+    """ just pass on the given date
+    - why not minutely? http://english.stackexchange.com/q/3091/222 """
     return datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 1)
 
 def hourly(dt=datetime.datetime.now()):
