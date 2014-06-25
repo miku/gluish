@@ -101,6 +101,18 @@ class UtilsTest(unittest.TestCase):
         with open(output) as handle:
             self.assertEquals('1', handle.read().strip())
 
+    def test_shellout_encoding(self):
+        word = u'Catégorie'
+        with self.assertRaises(UnicodeEncodeError):
+            shellout('echo {word}', word=word)
+
+        output = shellout('echo {word} > {output}', word=word, encoding='utf-8')
+        self.assertTrue(os.path.exists(output))
+        with open(output) as handle:
+            content = handle.read().strip()
+            self.assertEquals('Cat\xc3\xa9gorie', content)
+            self.assertEquals(u'Catégorie', content.decode('utf-8'))
+
     def test_parse_isbns(self):
         self.assertEquals([], parse_isbns("Nothing"))
         self.assertEquals([], parse_isbns("123 Nothing"))

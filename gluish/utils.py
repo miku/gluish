@@ -206,7 +206,11 @@ def shellout(template, **kwargs):
     if not 'output' in kwargs:
         kwargs.update({'output': tempfile.mkstemp(prefix='gluish-')[1]})
     ignoremap = kwargs.get('ignoremap', {})
-    command = template.format(**kwargs)
+    encoding = kwargs.get('encoding', None)
+    if encoding:
+        command = template.decode(encoding).format(**kwargs)
+    else:
+        command = template.format(**kwargs)
     if not preserve_spaces:
         command = re.sub('[ \t\n]+', ' ', command)
     logger.debug(cyan(command))
