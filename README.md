@@ -1,7 +1,7 @@
 Gluish
 ======
 
-[![Build Status](http://img.shields.io/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish.png)
+[![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
 
 
