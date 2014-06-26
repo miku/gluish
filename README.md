@@ -1,7 +1,7 @@
 Gluish
 ======
 
-[![Build Status](https://travis-ci.org/miku/gluish.png)](https://travis-ci.org/miku/gluish) [![Requirements Status](https://requires.io/github/miku/gluish/requirements.png?branch=master)](https://requires.io/github/miku/gluish/requirements/?branch=master)
+[![Build Status](https://travis-ci.org/miku/gluish.png)](https://travis-ci.org/miku/gluish) [![Requirements Status](https://requires.io/github/miku/gluish/requirements.png?branch=master)](https://requires.io/github/miku/gluish/requirements/?branch=master) [![PyPI version](https://badge.fury.io/py/gluish.svg)](http://badge.fury.io/py/gluish)
 
 Some glue around [luigi](https://github.com/spotify/luigi).
 
