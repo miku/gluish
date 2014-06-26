@@ -1,8 +1,8 @@
 Gluish
 ======
 
-[![Build Status](https://travis-ci.org/miku/gluish.png)](http://img.shields.io/miku/gluish/node.svg?style=flat)
-[![pypi version](https://pypi.python.org/pypi/gluish)](http://img.shields.io/pypi/v/gluish.svg?style=flat)
+[![Build Status](http://img.shields.io/miku/gluish/node.svg?style=flat)](https://travis-ci.org/miku/gluish.png)
+[![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
 
 
 Some glue around [luigi](https://github.com/spotify/luigi).
