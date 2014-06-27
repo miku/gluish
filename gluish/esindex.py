@@ -7,10 +7,7 @@ Provides an `ElasticsearchTarget` and a `CopyToIndex` template task.
 
 ----
 
-A minimal example:
-
-    from gluish.esindex import CopyToIndex
-    import luigi
+A minimal example (assuming elasticsearch is running on localhost:9200):
 
     class ExampleIndex(CopyToIndex):
         index = 'example'
@@ -25,9 +22,6 @@ A minimal example:
 ----
 
 All options:
-
-    from gluish.esindex import CopyToIndex
-    import luigi
 
     class ExampleIndex(CopyToIndex):
         host = 'localhost'
@@ -58,7 +52,7 @@ update to the index. This can be useful, if an index needs to recreated, even
 though the corresponding indexing task has been run sometime in the past - but
 a later indexing task might have altered the index in the meantime.
 
-There are a few luigi `client.cfg` configuration options:
+There are a two luigi `client.cfg` configuration options:
 
     [elasticsearch]
 
@@ -185,20 +179,22 @@ class CopyToIndex(luigi.Task):
 
     2. Implement a custom `docs` method, that returns an iterable over
     the documents. A document can be a JSON string, e.g. from
-    a newline-delimited JSON (ndj) file (default implementation) or some
+    a newline-delimited JSON (ldj) file (default implementation) or some
     dictionary.
 
     Optional attributes:
 
-    * `doc_type` (default),
-    * `host` (localhost),
-    * `port` (9200),
-    * `mapping` (None),
-    * `chunk_size` (2000),
-    * `raise_on_error` (True),
-    * `purge_existing_index` (False),
-    * `marker_index_hist_size` (0)
+    * doc_type (default),
+    * host (localhost),
+    * port (9200),
+    * settings ({'settings': {}})
+    * mapping (None),
+    * chunk_size (2000),
+    * raise_on_error (True),
+    * purge_existing_index (False),
+    * marker_index_hist_size (0)
 
+	If settings are defined, they are only applied at index creation time.
     """
 
     @property
