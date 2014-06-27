@@ -169,7 +169,9 @@ class OAIHarvestChunk(CommonTask):
 
 class FTPMirror(CommonTask):
     """
-    A generic FTP directory sync. Outsource to lftp.
+    A generic FTP directory sync. Required lftp (http://lftp.yar.ru/).
+    The output of this task is a single file, that contains the paths
+    to all the mirrored files.
     """
     host = luigi.Parameter()
     username = luigi.Parameter(default='anonymous')
