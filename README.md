@@ -148,6 +148,7 @@ if __name__ == '__main__':
     luigi.build([task], local_scheduler=True)
 ```
 
+Elasticsearch support [might](https://github.com/spotify/luigi/pull/364) get into `luigi.contrib`. 
 
 FTP mirroring task
 ------------------
