@@ -278,6 +278,9 @@ class TaskTest(unittest.TestCase):
         self.assertEquals(task.output().path,
             os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
 
+        task = TaskL()
+        self.assertEquals(task.output().path,
+            os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
         
     def test_mock_task(self):
         """ Test the mock class. """
