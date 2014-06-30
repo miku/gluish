@@ -25,7 +25,7 @@ setup(name='gluish',
       install_requires=[
         'BeautifulSoup==3.2.1',
         'MySQL-python==1.2.5',
-        'astroid==1.0.1',
+        'astroid>=1.0.1',
         'colorama==0.2.7',
         'elasticsearch==1.0.0',
         'logilab-common==0.61.0',
