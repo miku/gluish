@@ -26,7 +26,7 @@ tempfile.tempdir = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
 class TestTask(BaseTask):
     """ A base class for test tasks. """
     BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
-    TAG = 't'
+    TAG = 'gluish-testtasks'
 
 
 class TaskA(TestTask):
