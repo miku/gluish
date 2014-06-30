@@ -53,6 +53,11 @@ class BaseTask(luigi.Task):
         else:
             return self.task_id
 
+    def taskdir(self):
+        """ Return the directory under which all artefacts are stored. """
+        task_name, task_params = id_to_name_and_params(self.task_id)
+        return os.path.join(unicode(self.BASE), unicode(self.TAG), task_name)
+
     def path(self, filename=None, ext='tsv', digest=False, shard=False):
         """
         Return the path for this class with a certain set of parameters.

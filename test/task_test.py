@@ -7,13 +7,15 @@ Test tasks.
 
 # pylint: disable=E1101,W0232,R0904
 from gluish import GLUISH_DATA
-from gluish.task import BaseTask, MockTask, is_closest_date_parameter
 from gluish.parameter import ClosestDateParameter
-import unittest
-import tempfile
-import luigi
+from gluish.task import BaseTask, MockTask, is_closest_date_parameter
+from gluish.utils import shellout
 import datetime
+import luigi
 import os
+import shutil
+import tempfile
+import unittest
 
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
@@ -180,6 +182,16 @@ class TaskM(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
+class TaskN(TestTask):
+
+    def run(self):
+        """ Simulate touch. """
+        luigi.File(path=self.output().path).open('w')
+
+    def output(self):
+        """ output """
+        return luigi.LocalTarget(path=self.path())
+
 
 class ShardedTask(TestTask):
     """ Example task, that shards its outputs. """
@@ -195,6 +207,12 @@ class ShardedTask(TestTask):
 
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
+
+    @classmethod
+    def tearDownClass(cls):
+        base_dir = os.path.join(TestTask.BASE, TestTask.TAG)
+        if os.path.exists(base_dir):
+            shutil.rmtree(base_dir)
 
     def test_is_closest_date_parameter(self):
         self.assertEquals(is_closest_date_parameter(TaskL, 'date'), True)
@@ -290,3 +308,10 @@ class TaskTest(unittest.TestCase):
         self.assertTrue(task.output().path.endswith("62/param-Hello.tsv"))
         task = ShardedTask(param="Hi")
         self.assertTrue(task.output().path.endswith("1c/param-Hi.tsv"))
+
+    def test_task_dir(self):
+        task = TaskN()
+        self.assertFalse(os.path.exists(task.taskdir()))
+        luigi.build([task], local_scheduler=True)
+        self.assertTrue(os.path.isdir(task.taskdir()))
+        self.assertTrue(task.taskdir().endswith('TaskN'))
