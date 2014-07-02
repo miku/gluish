@@ -363,12 +363,20 @@ class IndexIdList(CommonTask):
 
 class IndexFieldList(CommonTask):
     """
-    Dump a list of ids and some specified field as TSV.
+    Dump a list of field values from Elasticsearch as TSV.
+
+    Example:
+
+        $ taskdo IndexFieldList --index nep --doc-type title \
+                                --fields "content.001 content.245.a 245.b" \
+                                --null-value "NULL"
     """
     date = luigi.DateParameter(default=datetime.date.today())
     index = luigi.Parameter(description='index name')
-    doc_type = luigi.Parameter(description='document type', default='default')
-    field = luigi.Parameter(description='the field to dump', default='meta.date')
+    doc_type = luigi.Parameter(description='document type')
+    fields = luigi.Parameter(description='the field(s) to dump')
+    encoding = luigi.Parameter(default='utf-8')
+    null_value = luigi.Parameter(default='<NULL>')
 
     raise_on_error = luigi.BooleanParameter(default=False,
                                             description='raise exception on missing values',
@@ -380,22 +388,32 @@ class IndexFieldList(CommonTask):
     @timed
     def run(self):
         es = elasticsearch.Elasticsearch(timeout=self.timeout)
+        fields = self.fields.split()
         hits = eshelpers.scan(es, {'query': {'match_all': {}},
-            'fields': [self.field]}, index=self.index, doc_type=self.doc_type,
+            'fields': fields}, index=self.index, doc_type=self.doc_type,
             scroll=self.scroll, size=self.size)
         with self.output().open('w') as output:
             for hit in hits:
-                fields = hit.get('fields')
-                if not fields[self.field]:
+                hitfields = hit.get('fields')
+                if not hitfields:
                     if self.raise_on_error:
-                        raise RuntimeError("BSZ document without meta.date")
+                        raise RuntimeError("nothing found in document")
                     else:
                         continue
                 else:
-                    if isinstance(fields[self.field], basestring):
-                        output.write_tsv(hit['_id'], fields[self.field])
-                    else:
-                        output.write_tsv(hit['_id'], fields[self.field][0])
+                    row = []
+                    for field in fields:
+                        value = hitfields.get(field, None)
+                        if value is None:
+                            row.append(self.null_value)
+                        elif isinstance(value, basestring):
+                            row.append(fieldvalue.encode(self.encoding))
+                        elif isinstance(value, collections.Iterable):
+                            row.append('|'.join([v.encode(self.encoding) for v in value]))
+                        else:
+                            if raise_on_error:
+                                raise RuntimeError("unknown value type: {}".format(fields))
+                    output.write_tsv(*row)
 
     def output(self):
-        return luigi.LocalTarget(path=self.path(), format=TSV)
+        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
