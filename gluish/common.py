@@ -372,8 +372,8 @@ class IndexFieldList(CommonTask):
                                 --null-value "NULL"
     """
     date = luigi.DateParameter(default=datetime.date.today())
-    index = luigi.Parameter(description='index name')
-    doc_type = luigi.Parameter(description='document type')
+    index = luigi.Parameter(description='index name or names separated by space')
+    doc_type = luigi.Parameter(description='document type', default=None)
     fields = luigi.Parameter(description='the field(s) to dump')
     encoding = luigi.Parameter(default='utf-8')
     null_value = luigi.Parameter(default='<NULL>')
@@ -388,9 +388,10 @@ class IndexFieldList(CommonTask):
     @timed
     def run(self):
         es = elasticsearch.Elasticsearch(timeout=self.timeout)
+        indices = self.index.split()
         fields = self.fields.split()
         hits = eshelpers.scan(es, {'query': {'match_all': {}},
-            'fields': fields}, index=self.index, doc_type=self.doc_type,
+            'fields': fields}, index=indices, doc_type=self.doc_type,
             scroll=self.scroll, size=self.size)
         with self.output().open('w') as output:
             for hit in hits:
