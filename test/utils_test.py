@@ -7,7 +7,8 @@ Test mixed utils.
 # pylint: disable=C0103
 from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
-                          shellout, parse_isbns, memoize, DefaultOrderedDict)
+                          shellout, parse_isbns, memoize, DefaultOrderedDict,
+                          itervalues)
 import collections
 import datetime
 import os
@@ -55,6 +56,7 @@ class UtilsTest(unittest.TestCase):
 
 
     def test_normalize(self):
+        """ Test simple string normalize. """
         s = "Hello, World!"
         self.assertEquals("hello world", normalize(s))
 
@@ -102,6 +104,7 @@ class UtilsTest(unittest.TestCase):
             self.assertEquals('1', handle.read().strip())
 
     def test_shellout_encoding(self):
+        """ Test shellout encoding. """
         word = u'Catégorie'
         with self.assertRaises(UnicodeEncodeError):
             shellout('echo {word}', word=word)
@@ -114,6 +117,7 @@ class UtilsTest(unittest.TestCase):
             self.assertEquals(u'Catégorie', content.decode('utf-8'))
 
     def test_parse_isbns(self):
+        """ Test ISBN parse. """
         self.assertEquals([], parse_isbns("Nothing"))
         self.assertEquals([], parse_isbns("123 Nothing"))
         self.assertEquals(['9780321349606'], parse_isbns("0-321-34960-1 Nothing"))
@@ -148,10 +152,26 @@ class UtilsTest(unittest.TestCase):
         self.assertEquals(4, f2(2))
         self.assertEquals(1, counter['f2'])
 
+    def test_itervalues(self):
+        """ Test itervalues. """
+        self.assertEquals([], list(itervalues([])))
+        self.assertEquals([1, 2, 3], list(itervalues([1, 2, 3])))
+        self.assertEquals([1, 2, 3, 4], list(itervalues([1, 2, [3, 4]])))
+        self.assertEquals([1, 2, 3, 4], list(itervalues([1, 2, [3, 4]])))
+        self.assertEquals([1, 2, 3, 4], list(itervalues([1, 2, [3, [4]]])))
+        self.assertEquals([1, 2, 4], list(itervalues([1, 2, {3: 4}])))
+        self.assertEquals([1, 2, 4, 5], list(itervalues([1, 2, {3: [4, 5]}])))
+        self.assertEquals([1, 2, 4, 6], list(itervalues([1, 2, {3: [4, {5: 6}]}])))
+        self.assertEquals([1, 2, 4, 6, 9], list(itervalues([1, 2, {3: [4, {5: 6}],
+                                                                   7: [{8: 9}]}])))
+        self.assertEquals([1, 2, "X"], list(itervalues([1, 2, {"_": "X"}])))
+        self.assertEquals([1, 2, "Z", "X"], list(itervalues([1, 2, {"_": "X", 1: "Z"}])))
+
 
 class DotDictTest(unittest.TestCase):
     """ Test dictionary with dot access. """
     def test_dot_dict(self):
+        """ Test dot dict. """
         dd = DotDict({'a': 1, 'b': 2, 'c': {'d': 3}, 'e': {'f': {'g': 4}}})
         self.assertEquals(1, dd.a)
         self.assertEquals(2, dd.b)
@@ -163,6 +183,7 @@ class DotDictTest(unittest.TestCase):
 class DefaultOrderedDictTest(unittest.TestCase):
     """ Test DefaultOrderedDict. """
     def test_default_ordered_dict(self):
+        """ Test ordered dict with defaults. """
         d = DefaultOrderedDict(list)
         d[0].append(0)
         d[1].append(2)

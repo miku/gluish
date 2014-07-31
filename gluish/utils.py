@@ -97,6 +97,23 @@ def flatten(iterable):
         else:
             yield item
 
+def itervalues(iterable):
+    """
+    Flattens arbitrary nested lists and dict values into a flat list. """
+    for item in iterable:
+        if isinstance(item, collections.Mapping):
+            for k, v in item.iteritems():
+                if isinstance(v, collections.Iterable) or isinstance(v, collections.Mapping):
+                    for vv in itervalues(v):
+                        yield vv
+                else:
+                    yield v
+        elif (isinstance(item, collections.Iterable) and
+            not isinstance(item, basestring)):
+            for sub in flatten(item):
+                yield sub
+        else:
+            yield item
 
 def pairwise(obj):
     """ Iterator over a iterable in steps of two. """
