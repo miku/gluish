@@ -276,6 +276,8 @@ class CopyToIndex(luigi.Task):
         for doc in self.docs():
             if needs_parsing:
                 doc = json.loads(doc)
+            if not doc:
+                continue
             if not '_index' in doc:
                 doc['_index'] = self.index
             if not '_type' in doc:
