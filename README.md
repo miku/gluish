@@ -4,7 +4,6 @@ Gluish
 [![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
 
-
 Some glue around [luigi](https://github.com/spotify/luigi).
 
 Provides a base class, that autogenerates its output filenames based on
@@ -14,7 +13,6 @@ Provides a base class, that autogenerates its output filenames based on
 
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
-
 
 A basic task that knows its place
 ---------------------------------
@@ -27,13 +25,11 @@ import datetime
 import luigi
 import tempfile
 
-
 class DefaultTask(BaseTask):
     """ Some default abstract task for your tasks. BASE and TAG determine
     the paths, where the artefacts will be stored. """
     BASE = tempfile.gettempdir()
     TAG = 'just-a-test'
-
 
 class RealTask(DefaultTask):
     """ Note that this task has a `self.path()`, that figures out the full
@@ -59,7 +55,6 @@ task.output().path
 # /var/folders/jy/g_b2kpwx0850/T/just-a-test/RealTask/date-1970-01-01.tsv
 
 ```
-
 
 A TSV format
 ------------
@@ -105,7 +100,6 @@ class TabularConsumer(DefaultTask):
 
 ```
 
-
 A benchmark decorator
 ---------------------
 
@@ -122,7 +116,6 @@ class SomeWork(luigi.Task):
     def complete(self):
         return False
 ```
-
 
 Elasticsearch template task
 ---------------------------
@@ -148,7 +141,7 @@ if __name__ == '__main__':
     luigi.build([task], local_scheduler=True)
 ```
 
-Elasticsearch support [might](https://github.com/spotify/luigi/pull/364) get into `luigi.contrib`. 
+Elasticsearch support has been added to luigi as [luigi.contrib.esindex](https://github.com/spotify/luigi/pull/364).
 
 FTP mirroring task
 ------------------
@@ -182,7 +175,6 @@ A short self contained example can be found in [this gist](https://gist.github.c
 
 To copy a single file from an FTP server, there is an `FTPFile` template task.
 
-
 Dynamic date parameter
 ----------------------
 
@@ -205,7 +197,6 @@ figure out the *effective date*.
 from gluish.parameter import ClosestDateParameter
 import datetime
 import luigi
-
 
 class SimpleTask(DefaultTask):
     """ Reuse DefaultTask from above """
@@ -243,7 +234,6 @@ from gluish.utils import memoize
 ```
 
 ----
-
 
 Development
 -----------
@@ -286,7 +276,6 @@ As of [4a7ec26ae6680d880ae20bebd514aba70d801687](https://github.com/miku/gluish/
     TOTAL                621    149    76%
     ----------------------------------------------------------------------
     Ran 33 tests in 0.269s
-
 
 Pylint hook
 -----------
