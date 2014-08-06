@@ -94,9 +94,8 @@ class TabularConsumer(DefaultTask):
             for row in handle.iter_tsv(cols=('id', 'greeting', 'greetee'))
                 print('{0} {1}!'.format(row.greeting, row.greetee))
 
-    def output(self):
-        return luigi.LocalTarget(path=self.path())
-
+    def complete(self):
+        return False
 ```
 
 A benchmark decorator
