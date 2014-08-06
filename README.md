@@ -179,7 +179,7 @@ To copy a single file from an FTP server, there is an `FTPFile` template task.
 Easy shell calls
 ----------------
 
-Leverage command line tools with [`gluish.utils.shellout`](https://github.com/miku/gluish/blob/a4722cbc83dc9085e33d39e1db484e1c4c3177e5/gluish/utils.py#L199). `shellout` will
+Leverage command line tools with [`gluish.utils.shellout`](https://github.com/miku/gluish/blob/943993d29fe88d352d110620a717303b19897577/gluish/utils.py#L199). `shellout` will
 take a string argument and will format it according to the keyword arguments.
 The `{output}` placeholder is special, since it will be automatically assigned
 a path to a temporary file, if it is not specified as a keyword argument.
@@ -192,7 +192,7 @@ passed. A literal curly brace can be inserted by `{{` and `}}` respectively.
 An exception is raised, whenever the commands exit with a non-zero return value.
 
 Note: If you want to make sure an executable is available on you system before the task runs,
-you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/b8653dc4f50f0548f9d8d05690e5cfe6e7275c54/gluish/common.py#L106) task as requirement.
+you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/943993d29fe88d352d110620a717303b19897577/gluish/common.py#L106) task as requirement.
 
 ```python
 from gluish.common import Executable
