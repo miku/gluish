@@ -92,8 +92,7 @@ class TabularConsumer(DefaultTask):
     def run(self):
         with self.input().open() as handle:
             for row in handle.iter_tsv(cols=('id', 'greeting', 'greetee'))
-                print('Greeting: {}'.format(row.greeting))
-                print('Greetee: {}'.format(row.greetee))
+                print('{0} {1}!'.format(row.greeting, row.greetee))
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
