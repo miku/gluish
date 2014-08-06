@@ -195,6 +195,7 @@ Note: If you want to make sure an executable is available on you system before t
 you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/b8653dc4f50f0548f9d8d05690e5cfe6e7275c54/gluish/common.py#L106) task as requirement.
 
 ```python
+from gluish.common import Executable
 from gluish.utils import shellout
 import luigi
 
