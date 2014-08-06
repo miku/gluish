@@ -179,24 +179,28 @@ To copy a single file from an FTP server, there is an `FTPFile` template task.
 Easy shell calls
 ----------------
 
-Leverage command line tools with `gluish.utils.shellout`. `shellout` will
+Leverage command line tools with [`gluish.utils.shellout`](https://github.com/miku/gluish/blob/a4722cbc83dc9085e33d39e1db484e1c4c3177e5/gluish/utils.py#L199). `shellout` will
 take a string argument and will format it according to the keyword arguments.
-The `{output}` placeholder is special, since it will be automatically filled
-with a path to a temporary file, if it is not specified as a keyword argument.
+The `{output}` placeholder is special, since it will be automatically assigned
+a path to a temporary file, if it is not specified as a keyword argument.
 
 The return value of `shellout` is the path to the `{output}` file.
 
+Spaces in the given string are normalized, unless `preserve_whitespace=True` is
+passed. A literal curly brace can be inserted by `{{` and `}}` respectively.
+
 An exception is raised, whenever the commands exit with a non-zero return value.
 
-(Note: If you want to make sure some executables are available on you system beforehand,
-you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/b8653dc4f50f0548f9d8d05690e5cfe6e7275c54/gluish/common.py#L106) task as requirement.)
+Note: If you want to make sure an executable is available on you system before the task runs,
+you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/b8653dc4f50f0548f9d8d05690e5cfe6e7275c54/gluish/common.py#L106) task as requirement.
 
 ```python
 from gluish.utils import shellout
 import luigi
 
 class GIFScreencast(DefaultTask):
-
+    """ Given a path to a screencast .mov, generate a GIF
+        which is funnier by definition. """
     filename = luigi.Parameter(description='Path to a .mov screencast')
     delay = luigi.IntParameter(default=3)
 
@@ -205,7 +209,8 @@ class GIFScreencast(DefaultTask):
                 Executable(name='gifsicle', message='http://www.lcdf.org/gifsicle/')]
 
     def run(self):
-        output = shellout("""ffmpeg -i {infile} -s 600x400 -pix_fmt rgb24 -r 10 -f gif - |
+        output = shellout("""ffmpeg -i {infile} -s 600x400
+                                    -pix_fmt rgb24 -r 10 -f gif - |
                              gifsicle --optimize=3 --delay={delay} > {output} """,
                              infile=self.filename, delay=self.delay)
         luigi.File(output).move(self.output().path)
