@@ -148,6 +148,7 @@ Mirroring FTP shares. This example reuses the [`DefaultTask`](https://github.com
 
 ```python
 from gluish.common import FTPMirror
+from gluish.utils import random_string
 import luigi
 
 class MirrorTask(DefaultTask):
@@ -160,8 +161,10 @@ class MirrorTask(DefaultTask):
             pattern='*pdf', base='/pub/techreports/00')
 
     def run(self):
-        # do some useful things with the files here ...
-        self.input().move(self.output().path)
+        with self.input().open() as handle:
+            # FTPMirror output is in TSV
+            for row in handle.iter_tsv(cols=('path',)):
+                # do some useful things with the files here ...
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
@@ -172,6 +175,44 @@ The output of `FTPMirror` is a **single file**, that contains the paths to all m
 A short self contained example can be found in [this gist](https://gist.github.com/miku/4d7e9589e63182f88509).
 
 To copy a single file from an FTP server, there is an `FTPFile` template task.
+
+Easy shell calls
+----------------
+
+Leverage command line tools with `gluish.utils.shellout`. `shellout` will
+take a string argument and will format it according to the keyword arguments.
+The `{output}` placeholder is special, since it will be automatically filled
+with a path to a temporary file, if it is not specified as a keyword argument.
+
+The return value of `shellout` is the path to the `{output}` file.
+
+An exception is raised, whenever the commands exit with a non-zero return value.
+
+(Note: If you want to make sure some executables are available on you system beforehand,
+you *can* use a [`gluish.common.Executable`](https://github.com/miku/gluish/blob/b8653dc4f50f0548f9d8d05690e5cfe6e7275c54/gluish/common.py#L106) task as requirement.)
+
+```python
+from gluish.utils import shellout
+import luigi
+
+class GIFScreencast(DefaultTask):
+
+    filename = luigi.Parameter(description='Path to a .mov screencast')
+    delay = luigi.IntParameter(default=3)
+
+    def requires(self):
+        return [Executable(name='ffmpg'),
+                Executable(name='gifsicle', message='http://www.lcdf.org/gifsicle/')]
+
+    def run(self):
+        output = shellout("""ffmpeg -i {infile} -s 600x400 -pix_fmt rgb24 -r 10 -f gif - |
+                             gifsicle --optimize=3 --delay={delay} > {output} """,
+                             infile=self.filename, delay=self.delay)
+        luigi.File(output).move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=self.path())
+```
 
 Dynamic date parameter
 ----------------------
@@ -186,7 +227,7 @@ Dependent tasks do not need to be updated as long as there is nothing new
 on the FTP server.
 
 To map an arbitrary date to the *closest* date in the past, where an update
-occured, you can use a `ClosestDateParameter`, which is just an ordinary
+occured, you can use a `gluish.parameter.ClosestDateParameter`, which is just an ordinary
 `DateParameter` but will invoke `task.closest()` behind the scene, to
 figure out the *effective date*.
 
