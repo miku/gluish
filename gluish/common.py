@@ -236,7 +236,7 @@ class FTPFile(CommonTask):
         luigi.File(output).move(self.output().path)
 
     def output(self):
-        return luigi.LocalTarget(path=self.path(digest=True), format=TSV)
+        return luigi.LocalTarget(path=self.path(digest=True, ext=None))
 
 
 class Directory(luigi.Task):
