@@ -35,14 +35,16 @@ class sqlite3db(object):
                            (1, "Hello World"))
 
     """
-    def __init__(self, path, copy_on_exit=None):
+    def __init__(self, path, timeout=5.0, detect_types=0, copy_on_exit=None):
         self.path = path
         self.conn = None
         self.cursor = None
+        self.timeout = timeout
+        self.detect_types = detect_types
         self.copy_on_exit = copy_on_exit
 
     def __enter__(self):
-        self.conn = sqlite3.connect(self.path)
+        self.conn = sqlite3.connect(self.path, timeout=self.timeout, detect_types=self.detect_types)
         self.conn.text_factory = str
         self.cursor = self.conn.cursor()
         return self.cursor
