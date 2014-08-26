@@ -3,7 +3,7 @@ MySQL-python==1.2.5
 astroid>=1.0.1
 colorama==0.2.7
 coverage==3.7.1
-elasticsearch==1.0.0
+elasticsearch==1.2.0
 git-pylint-commit-hook==2.0.3
 gluish==0.1.37
 logilab-common==0.61.0
