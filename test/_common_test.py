@@ -20,6 +20,7 @@ import elasticsearch
 import luigi
 import os
 import tempfile
+import time
 import unittest
 
 
@@ -100,11 +101,11 @@ class SplitFileTest(unittest.TestCase):
 
 class SampleHarvestChunk(OAIHarvestChunk):
     """ Example harvesting. Will go out to the real server. """
-    url = luigi.Parameter(default="http://oai.bnf.fr/oai2/OAIHandler")
-    begin = luigi.DateParameter(default=datetime.date(2013, 1, 1))
-    end = luigi.DateParameter(default=datetime.date(2013, 2, 1))
+    url = luigi.Parameter(default="http://services.dnb.de/oai/repository")
+    begin = luigi.DateParameter(default=datetime.date(2011, 1, 1))
+    end = luigi.DateParameter(default=datetime.date(2011, 2, 1))
     prefix = luigi.Parameter(default="oai_dc")
-    collection = luigi.Parameter(default="gallica:typedoc:partitions")
+    collection = luigi.Parameter(default="dnb:online:dissertations")
 
     def output(self):
         return luigi.LocalTarget(path=self.path())
@@ -114,7 +115,7 @@ class OAIHarvestChunkTest(unittest.TestCase):
     def test_harvest(self):
         task = SampleHarvestChunk()
         luigi.build([task], local_scheduler=True)
-        want_path = os.path.join(FIXTURES, 'sample_bnf_oai_response_2014_06_18.xml')
+        want_path = os.path.join(FIXTURES, 'sample_dnb_oai_response.xml')
         want = BeautifulSoup.BeautifulStoneSoup(open(want_path).read())
         got = BeautifulSoup.BeautifulStoneSoup(task.output().open().read())
         _, temp = tempfile.mkstemp()
@@ -341,7 +342,7 @@ class IndexFieldTest(unittest.TestCase):
         luigi.build([task], local_scheduler=True)
 
         task = IndexFieldList(index='testisbn', doc_type='default',
-                              field='content.020.z')
+                              fields='content.001 content.020.z')
         luigi.build([task], local_scheduler=True)
 
         with task.output().open() as handle:
