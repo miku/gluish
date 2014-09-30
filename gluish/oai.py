@@ -10,15 +10,18 @@ import BeautifulSoup
 import logging
 import os
 import urllib
+import time
 
 logger = logging.getLogger('gluish')
 
 
 def oai_harvest(url=None, collection=None, begin=None, end=None,
                 prefix='oai_dc', verb='ListRecords',
-                max_retries=8, directory=None, ext='xml', download=download):
+                max_retries=8, directory=None, ext='xml', download=download,
+                delay=0):
     """
-    Harvest OAI for `url`. Will download all files into `directory`
+    Harvest OAI for `url`. Will download all files into `directory`. Optionally
+    add a delay between requests.
 
     argument    OAI name
     --------------------
@@ -47,6 +50,7 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
     for retry in range(max_retries):
         try:
             download(url=full_url, filename=path, timeout=30)
+            time.sleep(delay)
             break
         except RuntimeError as err:
             logger.info('Retry %s on %s' % (retry, full_url))
@@ -76,6 +80,7 @@ def oai_harvest(url=None, collection=None, begin=None, end=None,
                                    max_retries, full_url))
             try:
                 download(url=full_url, filename=path)
+                time.sleep(delay)
                 break
             except RuntimeError as err:
                 retry += 1

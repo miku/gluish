@@ -144,12 +144,13 @@ class OAIHarvestChunk(CommonTask):
     prefix = luigi.Parameter(default="marc21")
     url = luigi.Parameter(default="http://oai.bnf.fr/oai2/OAIHandler")
     collection = luigi.Parameter(default=None)
+    delay = luigi.IntParameter(default=0, description='pause after request (in s)')
 
     def run(self):
         stopover = tempfile.mkdtemp(prefix='gluish-')
         oai_harvest(url=self.url, begin=self.begin, end=self.end,
                     prefix=self.prefix, directory=stopover,
-                    collection=self.collection)
+                    collection=self.collection, delay=self.delay)
 
         with self.output().open('w') as output:
             output.write("""<collection
@@ -312,7 +313,7 @@ class IndexIsbnList(CommonTask):
                               scroll=self.scroll, size=self.size)
 
         with self.output().open('w') as output:
-            for i, hit in enumerate(hits):
+            for _, hit in enumerate(hits):
                 fields = hit.get('fields', {})
                 isbns = set()
                 for isbn_field in isbn_fields:
@@ -354,7 +355,7 @@ class IndexIdList(CommonTask):
                               size=self.size)
 
         with self.output().open('w') as output:
-            for i, hit in enumerate(hits):
+            for _, hit in enumerate(hits):
                 output.write_tsv(self.index, hit['_id'])
 
     def output(self):
