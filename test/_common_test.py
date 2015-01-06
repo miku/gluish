@@ -220,14 +220,14 @@ class ECBFXTest(unittest.TestCase):
 
     EXPECTED_CURRENCIES = set(('AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK',
                                'DKK', 'GBP', 'HKD', 'HRK', 'HUF', 'IDR', 'ILS',
-                               'INR', 'JPY', 'KRW', 'LTL', 'MXN', 'MYR', 'NOK',
-                               'NZD', 'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD',
-                               'THB', 'TRY', 'USD', 'ZAR'))
+                               'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD',
+                               'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'THB',
+                               'TRY', 'USD', 'ZAR'))
 
     def test_fx(self):
         task = FXRates()
         luigi.build([task], local_scheduler=True)
-        self.assertEquals(wc(task.output().path), 32)
+        self.assertEquals(wc(task.output().path), len(ECBFXTest.EXPECTED_CURRENCIES))
         with task.output().open() as handle:
             for row in handle.iter_tsv(cols=('symbol', 'rate')):
                 self.assertTrue(row.symbol in ECBFXTest.EXPECTED_CURRENCIES)
