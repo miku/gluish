@@ -4,7 +4,7 @@ colorama==0.3.3
 elasticsearch==1.3.0
 git-pylint-commit-hook==2.0.3
 logilab-common==0.61.0
-luigi==1.0.19
+luigi==1.0.20
 MySQL-python==1.2.5
 nose==1.3.3
 pyisbn==1.0.0
