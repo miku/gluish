@@ -26,6 +26,12 @@ def is_closest_date_parameter(task, param_name):
             return hasattr(obj, 'use_closest_date')
     return False
 
+def delistify(x):
+    """ A basic slug version of a given parameter list. """
+    if isinstance(x, list):
+        x = [e.replace("'", "") for e in x]
+        return '-'.join(sorted(x))
+    return x
 
 class BaseTask(luigi.Task):
     """
@@ -75,7 +81,7 @@ class BaseTask(luigi.Task):
             if 'date' in task_params and is_closest_date_parameter(self, 'date'):
                 task_params['date'] = self.closest()
 
-            parts = ('{k}-{v}'.format(k=k, v=v)
+            parts = ('{k}-{v}'.format(k=k, v=delistify(v))
                      for k, v in task_params.iteritems())
 
             name = '-'.join(sorted(parts))

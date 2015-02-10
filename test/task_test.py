@@ -204,6 +204,18 @@ class ShardedTask(TestTask):
         """ Use shard=True """
         return luigi.LocalTarget(path=self.path(shard=True))
 
+class ListParamTask(TestTask):
+    """ Testing list parameter slugs. """
+
+    param = luigi.Parameter(default=[1, 2, 3], is_list=True)
+
+    def run(self):
+        """ Dummy run. """
+
+    def output(self):
+        """ Use shard=True """
+        return luigi.LocalTarget(path=self.path(shard=True))
+
 
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
@@ -318,3 +330,7 @@ class TaskTest(unittest.TestCase):
         luigi.build([task], local_scheduler=True)
         self.assertTrue(os.path.isdir(task.taskdir()))
         self.assertTrue(task.taskdir().endswith('TaskN'))
+
+    def test_task_list_slug(self):
+        task = ListParamTask()
+        self.assertTrue(task.output().path.endswith("param-1-2-3.tsv"))
