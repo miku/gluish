@@ -3,7 +3,8 @@ Gluish
 
 [![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
-[![pypi downloads](https://pypip.in/download/gluish/badge.svg?period=month)](https://pypip.in/download/gluish/badge.svg?period=month)
+
+[![pypi downloads](https://pypip.in/download/gluish/badge.svg?period=month)](https://pypi.python.org/gluish)
 
 Some glue around [luigi](https://github.com/spotify/luigi).
 
