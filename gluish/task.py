@@ -11,7 +11,7 @@ A default task, that covers file system layout.
 # pylint: disable=F0401,E1101,E1103
 from gluish import GLUISH_DATA
 from gluish.parameter import ClosestDateParameter
-from luigi.task import id_to_name_and_params
+from luigi.tools.parse_task import id_to_name_and_params
 import datetime
 import hashlib
 import luigi
