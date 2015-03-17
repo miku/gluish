@@ -7,9 +7,9 @@ Basic database tests.
 from gluish.database import sqlite3db
 import os
 import sqlite3
+import sys
 import tempfile
 import unittest
-
 
 class DatabaseTest(unittest.TestCase):
     """ Database tests. """
@@ -19,6 +19,7 @@ class DatabaseTest(unittest.TestCase):
         with sqlite3db(tempfile.mktemp()) as cursor:
             self.assertEquals(sqlite3.Cursor, cursor.__class__)
 
+    @unittest.skipUnless("sqlitebck" in sys.modules, "requires sqlitebck")
     def test_sqlite3db_copy_on_exit(self):
         """ Test copy_on_exit """
         target = tempfile.mktemp()

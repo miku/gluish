@@ -12,10 +12,13 @@ try:
 except ImportError:
     logging.warn("MySQLdb seems missing: limited functionality.")
 
-import sqlite3
-import sqlitebck
-import urlparse
+try:
+    import sqlitebck
+except ImportError:
+    logging.warn("sqlitebck seems missing: limited functionality.")
 
+import sqlite3
+import urlparse
 
 class sqlite3db(object):
     """
@@ -56,7 +59,6 @@ class sqlite3db(object):
             sqlitebck.copy(self.conn, target)
             target.close()
         self.conn.close()
-
 
 class mysqldb(object):
     """ Context manager for MySQL database access.
