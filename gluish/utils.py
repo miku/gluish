@@ -12,7 +12,6 @@ import functools
 import itertools
 import logging
 import operator
-import pyisbn
 import random
 import re
 import string
@@ -245,6 +244,7 @@ def shellout(template, **kwargs):
 
 
 def parse_isbns(s):
+    import pyisbn
     """ Given a string, find as many uniq ISBNs in it an return them. """
     pattern = re.compile('[0-9X-]{10,25}')
     isbns = set()
