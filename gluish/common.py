@@ -90,6 +90,22 @@ class Executable(CommonTask):
     def complete(self):
         return which(self.name) is not None
 
+class EnvironmentVariable(CommonTask):
+    """
+    Checks whether an environment variable is set
+    """
+    name = luigi.Parameter()
+    message = luigi.Parameter(default="")
+
+    def run(self):
+        """ Only run if, task is not complete. """
+        raise RuntimeError('Environment variable %s required.\n%s' % (self.name,
+                           self.message))
+
+    def complete(self):
+        return os.getenv(name) is not None
+
+
 
 class LineCount(CommonTask):
     """ Wrapped wc -l. """
