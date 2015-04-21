@@ -38,8 +38,6 @@ setup(name='gluish',
         'urllib3==1.10',
         'wsgiref==0.1.2',
       ],
-      extras_require={
-                      'sqlitebck' : [ 'sqlitebck==1.2.1' ],
-                      'MySQL' : [ 'MySQL-python==1.2.5' ]
-                      }
+      extras_require={'sqlitebck': ['sqlitebck==1.2.1'],
+                      'MySQL': ['MySQL-python==1.2.5']}
 )
