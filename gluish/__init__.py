@@ -9,7 +9,7 @@ import requests
 import logging
 
 requests.adapters.DEFAULT_RETRIES = 3
-__version__ = '0.1.72'
+__version__ = '0.1.73'
 
 # environment variable name
 GLUISH_DATA = 'GLUISH_DATA'
