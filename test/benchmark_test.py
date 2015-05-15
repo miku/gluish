@@ -60,4 +60,4 @@ class BenchmarkTest(unittest.TestCase):
             self.assertEquals('green', status)
             today = datetime.datetime.now(pytz.utc).date()
             self.assertTrue(added.startswith(str(today)),
-                            msg='added={}, today={}'.format(added, today))
+                            msg='added={0}, today={1}'.format(added, today))

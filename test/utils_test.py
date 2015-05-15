@@ -9,7 +9,6 @@ from gluish.utils import (flatten, pairwise, nwise, DotDict, date_range,
                           normalize, random_string, dashify, unwrap, istrip,
                           shellout, parse_isbns, memoize, DefaultOrderedDict,
                           itervalues)
-import collections
 import datetime
 import os
 import tempfile
@@ -106,8 +105,7 @@ class UtilsTest(unittest.TestCase):
     def test_shellout_encoding(self):
         """ Test shellout encoding. """
         word = u'Catégorie'
-        with self.assertRaises(UnicodeEncodeError):
-            shellout('echo {word}', word=word)
+        self.assertRaises(UnicodeEncodeError, shellout, 'echo {word}', word=word)
 
         output = shellout('echo {word} > {output}', word=word, encoding='utf-8')
         self.assertTrue(os.path.exists(output))
@@ -129,7 +127,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_memoize(self):
         """ Test memoize """
-        counter = collections.Counter()
+        counter = {'f1': 0, 'f2': 0}
 
         def f1(x):
             counter['f1'] += 1
