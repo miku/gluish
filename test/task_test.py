@@ -270,17 +270,14 @@ class TaskTest(unittest.TestCase):
             os.path.join(prefix, 'TaskH', 'closest-2000-01-01.tsv'))
 
         task = TaskI()
-        with self.assertRaises(AttributeError):
-            task.closest()
+        self.assertRaises(AttributeError, task.closest)
 
         self.assertEquals(task.output().path,
             os.path.join(prefix, 'TaskI', 'output.tsv'))
 
         task = TaskJ()
-        with self.assertRaises(ValueError):
-            task.closest()
-        with self.assertRaises(ValueError):
-            task.output().path
+        self.assertRaises(ValueError, task.closest)
+        self.assertRaises(ValueError, task.output)
 
         task = TaskK()
         self.assertEquals(task.output().path,

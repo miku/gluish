@@ -22,5 +22,5 @@ class ParameterTest(unittest.TestCase):
         self.assertEquals(parameter.parse(12), '12')
 
         parameter = ZeroPaddedIntParameter()
-        with self.assertRaises(ValueError):
-            parameter.parse("Hello")
+
+        self.assertRaises(ValueError, parameter.parse, "Hello")

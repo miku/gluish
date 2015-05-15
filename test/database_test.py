@@ -19,17 +19,17 @@ class DatabaseTest(unittest.TestCase):
         with sqlite3db(tempfile.mktemp()) as cursor:
             self.assertEquals(sqlite3.Cursor, cursor.__class__)
 
-    @unittest.skipUnless("sqlitebck" in sys.modules, "requires sqlitebck")
     def test_sqlite3db_copy_on_exit(self):
         """ Test copy_on_exit """
-        target = tempfile.mktemp()
-        with sqlite3db(":memory:", copy_on_exit=target) as cursor:
-            cursor.execute("CREATE TABLE test (i INTEGER, t TEXT)")
-            cursor.execute("INSERT INTO test VALUES (?, ?)",
-                           (1, "Hello World"))
+        if "sqlitebck" in sys.modules:
+            target = tempfile.mktemp()
+            with sqlite3db(":memory:", copy_on_exit=target) as cursor:
+                cursor.execute("CREATE TABLE test (i INTEGER, t TEXT)")
+                cursor.execute("INSERT INTO test VALUES (?, ?)",
+                               (1, "Hello World"))
 
-        self.assertTrue(os.path.exists(target))
-        with sqlite3db(target) as cursor:
-            cursor.execute("SELECT i, t FROM test LIMIT 1")
-            row = cursor.fetchone()
-            self.assertEquals((1, "Hello World"), row)
+            self.assertTrue(os.path.exists(target))
+            with sqlite3db(target) as cursor:
+                cursor.execute("SELECT i, t FROM test LIMIT 1")
+                row = cursor.fetchone()
+                self.assertEquals((1, "Hello World"), row)

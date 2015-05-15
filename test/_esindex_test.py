@@ -191,9 +191,13 @@ class MarkerIndexTest(unittest.TestCase):
 
     def test_update_marker_has_date(self):
         es = elasticsearch.Elasticsearch()
-        with self.assertRaises(elasticsearch.NotFoundError):
-            result = es.count(index=marker_index, doc_type=marker_doc_type,
-                              body={'query': {'match_all': {}}})
+        self.assertRaises(elasticsearch.NotFoundError, es.count,
+                          index=marker_index, doc_type=marker_doc_type,
+                          body={'query': {'match_all': {}}})
+
+        self.assertRaises(elasticsearch.NotFoundError, es.count,
+                          index=marker_index, doc_type=marker_doc_type,
+                          body={'query': {'match_all': {}}})
 
         task1 = IndexingTask1()
         luigi.build([task1], local_scheduler=True)
