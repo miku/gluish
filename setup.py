@@ -10,7 +10,27 @@ Additionally, provide some smaller utilities, like a TSV format, a benchmark
 decorator and some task templates.
 """
 from setuptools import setup
+import sys
 
+install_requires = [
+    'BeautifulSoup==3.2.1',
+    'astroid>=1.0.1',
+    'colorama==0.3.3',
+    'elasticsearch==1.3.0',
+    'logilab-common==0.61.0',
+    'luigi>=1.0.20',
+    'nose==1.3.3',
+    'pyisbn==1.0.0',
+    'python-dateutil==2.2',
+    'pytz==2014.4',
+    'requests==2.5.1',
+    'six==1.9.0',
+    'urllib3==1.10',
+    'wsgiref==0.1.2',
+]
+
+if sys.version_info < (2, 7):
+    install_requires.append('ordereddict==1.1')
 
 setup(name='gluish',
       version='0.1.73',
@@ -22,22 +42,7 @@ setup(name='gluish',
         'gluish',
       ],
       package_dir={'gluish': 'gluish'},
-      install_requires=[
-        'BeautifulSoup==3.2.1',
-        'astroid>=1.0.1',
-        'colorama==0.3.3',
-        'elasticsearch==1.3.0',
-        'logilab-common==0.61.0',
-        'luigi>=1.0.20',
-        'nose==1.3.3',
-        'pyisbn==1.0.0',
-        'python-dateutil==2.2',
-        'pytz==2014.4',
-        'requests==2.5.1',
-        'six==1.9.0',
-        'urllib3==1.10',
-        'wsgiref==0.1.2',
-      ],
+      install_requires=install_requires,
       extras_require={'sqlitebck': ['sqlitebck==1.2.1'],
                       'MySQL': ['MySQL-python==1.2.5']}
 )

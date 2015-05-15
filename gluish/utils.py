@@ -16,25 +16,30 @@ import random
 import re
 import string
 import subprocess
+import sys
 import tempfile
 import time
 
+if sys.version_info > (2, 6):
+    from collections import OrderedDict
+else:
+    from ordereddict import OrderedDict
 
 logger = logging.getLogger('gluish')
 
 
-class DefaultOrderedDict(collections.OrderedDict):
+class DefaultOrderedDict(OrderedDict):
     """ Cross-over of ordered and default dict. """
     def __init__(self, default_factory=None, *a, **kw):
         if (default_factory is not None and
             not isinstance(default_factory, collections.Callable)):
             raise TypeError('first argument must be callable')
-        collections.OrderedDict.__init__(self, *a, **kw)
+        OrderedDict.__init__(self, *a, **kw)
         self.default_factory = default_factory
 
     def __getitem__(self, key):
         try:
-            return collections.OrderedDict.__getitem__(self, key)
+            return OrderedDict.__getitem__(self, key)
         except KeyError:
             return self.__missing__(key)
 
@@ -63,7 +68,7 @@ class DefaultOrderedDict(collections.OrderedDict):
                           copy.deepcopy(self.items()))
     def __repr__(self):
         return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
-            collections.OrderedDict.__repr__(self))
+            OrderedDict.__repr__(self))
 
 
 class DotDict(dict):
