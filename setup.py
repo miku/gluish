@@ -33,7 +33,7 @@ if sys.version_info < (2, 7):
     install_requires.append('ordereddict==1.1')
 
 setup(name='gluish',
-      version='0.1.73',
+      version='0.1.74',
       description='Utils around Luigi.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
