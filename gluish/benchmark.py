@@ -86,7 +86,7 @@ def ptimed(method=None, path=DEFAULT_BENCHMARK_DB, log=True):
         klass = args[0].__class__.__name__
         fun = method.__name__
 
-        key = '{}.{}.{}'.format(module, klass, fun)
+        key = '{0}.{1}.{2}'.format(module, klass, fun)
         value = timer.elapsed_s
         # just a quick visual impression, everything that takes more
         # than 10s is yellow, more then 1min, red.
