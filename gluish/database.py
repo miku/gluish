@@ -7,10 +7,10 @@ Helper for databases.
 import logging
 
 try:
-    from MySQLdb.cursors import SSCursor
-    import MySQLdb
+    from PyMySQL.cursors import SSCursor
+    import PyMySQL
 except ImportError:
-    logging.warn("MySQLdb seems missing: limited functionality.")
+    logging.warn("PyMySQL seems missing: limited functionality.")
 
 try:
     import sqlitebck
@@ -81,11 +81,11 @@ class mysqldb(object):
 
     def __enter__(self):
         if self.stream:
-            self.conn = MySQLdb.connect(host=self.hostname, user=self.username,
+            self.conn = pymysql.connect(host=self.hostname, user=self.username,
                                         passwd=self.password, db=self.database,
                                         cursorclass=SSCursor)
         else:
-            self.conn = MySQLdb.connect(host=self.hostname, user=self.username,
+            self.conn = pymysql.connect(host=self.hostname, user=self.username,
                                         passwd=self.password, db=self.database)
 
         self.cursor = self.conn.cursor()
