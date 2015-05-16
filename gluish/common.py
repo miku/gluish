@@ -24,12 +24,6 @@ import re
 import requests
 import tempfile
 
-try:
-    from estasks import *  # maintain backwards compatibility
-except ImportError as err:
-    logging.warn('one or more imports failed: %s' % err)
-
-
 logger = logging.getLogger('gluish')
 
 
