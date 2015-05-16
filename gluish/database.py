@@ -7,10 +7,10 @@ Helper for databases.
 import logging
 
 try:
-    from PyMySQL.cursors import SSCursor
-    import PyMySQL
+    from pymysql.cursors import SSCursor
+    import pymysql
 except ImportError:
-    logging.warn("PyMySQL seems missing: limited functionality.")
+    logging.warn("pymysql seems missing: limited functionality.")
 
 try:
     import sqlitebck
