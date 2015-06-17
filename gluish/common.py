@@ -12,10 +12,8 @@ from gluish.path import iterfiles, which
 from gluish.task import BaseTask
 from gluish.utils import shellout, random_string
 import BeautifulSoup
-import collections
 import datetime
 import hashlib
-import json
 import logging
 import luigi
 import os
@@ -162,7 +160,7 @@ class FTPMirror(CommonTask):
     indicator = luigi.Parameter(default=random_string())
 
     def requires(self):
-        return Executable(name='lftp')
+        return Executable(name='lftp', message='http://lftp.yar.ru/')
 
     def run(self):
         """ The indicator is always recreated, while the subdir
