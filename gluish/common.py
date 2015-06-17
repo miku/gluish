@@ -3,7 +3,7 @@
 """
 Tasks that can (mostly) be used out of the box.
 """
-# pylint: disable=F0401,W0232,R0903,E1101
+# pylint: disable=F0401,W0232,R0903,E1101,C0301,W0223
 from gluish import GLUISH_DATA
 from gluish.benchmark import timed
 from gluish.format import TSV
