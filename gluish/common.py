@@ -95,7 +95,7 @@ class EnvironmentVariable(CommonTask):
                            self.message))
 
     def complete(self):
-        return os.getenv(name) is not None
+        return os.getenv(self.name) is not None
 
 
 
