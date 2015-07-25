@@ -72,8 +72,8 @@ class BaseTask(luigi.Task):
         If `shard` is true, the files are placed in shards, based on the first
         two chars of the filename (hashed).
         """
-        if self.TAG is NotImplemented or self.BASE is NotImplemented:
-            raise RuntimeError('TAG and BASE must be set.')
+	if self.BASE is NotImplemented:
+	    raise RuntimeError('BASE directory must be set.')
         
         task_name, task_params = id_to_name_and_params(self.task_id)
 
