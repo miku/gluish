@@ -32,14 +32,9 @@ The file should look like this:
     1616 Social life and customs
 """
 
-from gluish.common import Executable
-from gluish.intervals import weekly
-from gluish.shell import shellout
-from gluish.task import BaseTask
-from gluish.format import TSV
-import tempfile
+from gluish import Executable, weekly, shellout, BaseTask, TSV
 import luigi
-
+import tempfile
 
 class GutenbergTask(BaseTask):
     BASE = tempfile.gettempdir()
@@ -75,7 +70,7 @@ class GutenbergIndexTerms(GutenbergTask):
     def requires(self):
         return {'dump': GutenbergDump(date=self.date),
                 'apps': Executable(name='marctotsv',
-                                   message='https://github.com/miku/gomarckit')}
+                                   message='https://github.com/ubleipzig/marctools')}
 
     def run(self):
         output = shellout('marctotsv -k -s "|" {input} 001 653.a > {output}',

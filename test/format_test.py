@@ -21,11 +21,11 @@ class FormatTest(unittest.TestCase):
             write_tsv(handle, 'A', 'B', 'C')
 
         with open(path) as handle:
-            row = iter_tsv(handle).next()
+            row = next(iter_tsv(handle))
             self.assertEqual(3, len(row))
 
         with open(path) as handle:
-            row = iter_tsv(handle, cols=('a', 'b', 'c')).next()
+            row = next(iter_tsv(handle, cols=('a', 'b', 'c')))
             self.assertEqual(3, len(row))
             self.assertEqual(row.a, 'A')
             self.assertEqual(row.b, 'B')
@@ -34,20 +34,20 @@ class FormatTest(unittest.TestCase):
         with open(path) as handle:
             exception_raised = False
             try:
-                row = iter_tsv(handle, cols=('a', 'b')).next()
+                row = next(iter_tsv(handle, cols=('a', 'b')))
             except TypeError:
                 exception_raised = True
             self.assertTrue(exception_raised)
 
         with open(path) as handle:
-            row = iter_tsv(handle, cols=('a', 0, 0)).next()
+            row = next(iter_tsv(handle, cols=('a', 0, 0)))
             self.assertEqual(3, len(row))
             self.assertEqual(row.a, 'A')
             self.assertFalse(hasattr(row, 'b'))
             self.assertFalse(hasattr(row, 'c'))
 
         with open(path) as handle:
-            row = iter_tsv(handle, cols=('X', 'b', 'X')).next()
+            row = next(iter_tsv(handle, cols=('X', 'b', 'X')))
             self.assertEqual(3, len(row))
             self.assertEqual(row.b, 'B')
             self.assertFalse(hasattr(row, 'a'))

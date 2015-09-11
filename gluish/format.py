@@ -24,14 +24,13 @@ import collections
 import functools
 import luigi
 
+__all__ = ['TSV']
 
 def write_tsv(output_stream, *tup):
     """
     Write argument list in `tup` out as a tab-separeated row to the stream.
     """
     output_stream.write('\t'.join([str(s) for s in tup]) + '\n')
-    # output_stream.write('\t'.join([s.encode('utf-8') for s in tup]) + '\n')
-
 
 def iter_tsv(input_stream, cols=None):
     """
@@ -58,7 +57,6 @@ def iter_tsv(input_stream, cols=None):
     else:
         for line in input_stream:
             yield tuple(line.rstrip('\n').split('\t'))
-
 
 class TSVFormat(luigi.format.Format):
     """

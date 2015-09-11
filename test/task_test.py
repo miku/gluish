@@ -1,12 +1,10 @@
 # coding: utf-8
-# pylint: disable=R0201
+# pylint: disable=R0201,E1101,W0232,R0904
 
 """
 Test tasks.
 """
 
-# pylint: disable=E1101,W0232,R0904
-from gluish import GLUISH_DATA
 from gluish.parameter import ClosestDateParameter
 from gluish.task import BaseTask, MockTask, is_closest_date_parameter
 from gluish.utils import shellout
@@ -19,15 +17,10 @@ import unittest
 
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
-# bring tempdir in line with GLUISH_DATA
-tempfile.tempdir = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
-
-
 class TestTask(BaseTask):
     """ A base class for test tasks. """
-    BASE = os.environ.get(GLUISH_DATA, tempfile.gettempdir())
+    BASE = tempfile.gettempdir()
     TAG = 'gluish-testtasks'
-
 
 class TaskA(TestTask):
     """ Plain vanilla task, that does nothing. """
@@ -35,7 +28,6 @@ class TaskA(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskB(TestTask):
     """ Task with a date param. """
@@ -45,7 +37,6 @@ class TaskB(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskC(TestTask):
     """ Task with a date param and an float param. """
     date = luigi.DateParameter(default=datetime.date(1970, 1, 1))
@@ -54,7 +45,6 @@ class TaskC(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskD(TestTask):
     """ Task with a date param and an float param. And a closest method. """
@@ -69,7 +59,6 @@ class TaskD(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskE(TestTask):
     """ Task with a date param and an float param. And a closest method. """
     date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
@@ -82,7 +71,6 @@ class TaskE(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskF(TestTask):
     """ Task with a date param and an float param. And a closest method. """
@@ -97,7 +85,6 @@ class TaskF(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskG(TestTask):
     """ Task with a date param and an float param. And a closest method. """
     date = luigi.DateParameter(default=datetime.date(2000, 1, 1))
@@ -106,7 +93,6 @@ class TaskG(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskH(TestTask):
     """ Task with a date param and an float param. And a closest method. """
     closest = luigi.DateParameter(default=datetime.date(2000, 1, 1))
@@ -114,7 +100,6 @@ class TaskH(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskI(TestTask):
     """ Task with a date param and an float param. And a closest method. """
@@ -128,7 +113,6 @@ class TaskI(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskJ(TestTask):
     """ Task with some exception in closest. """
     date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
@@ -140,7 +124,6 @@ class TaskJ(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class TaskK(TestTask):
     """ Task that returns a float from closest. """
     date = ClosestDateParameter(default=datetime.date(2000, 1, 1))
@@ -151,7 +134,6 @@ class TaskK(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskL(TestTask):
     """ Task that returns some custom object from closest. """
@@ -166,7 +148,6 @@ class TaskL(TestTask):
     def output(self):
         """ output """
         return luigi.LocalTarget(path=self.path())
-
 
 class TaskM(TestTask):
     """ Task that returns a float from closest. """
@@ -192,11 +173,10 @@ class TaskN(TestTask):
         """ output """
         return luigi.LocalTarget(path=self.path())
 
-
 class ShardedTask(TestTask):
     """ Example task, that shards its outputs. """
     param = luigi.Parameter(default='Hello')
-    
+
     def run(self):
         """ Dummy run. """
 
@@ -215,7 +195,6 @@ class ListParamTask(TestTask):
     def output(self):
         """ Use shard=True """
         return luigi.LocalTarget(path=self.path(shard=True))
-
 
 class TaskTest(unittest.TestCase):
     """ Test tasks. """
@@ -290,7 +269,7 @@ class TaskTest(unittest.TestCase):
         task = TaskL()
         self.assertEquals(task.output().path,
             os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
-        
+
     def test_mock_task(self):
         """ Test the mock class. """
         task = MockTask(fixture=os.path.join(FIXTURES, 'l-1.txt'))
@@ -307,7 +286,7 @@ class TaskTest(unittest.TestCase):
         task = TaskM()
         self.assertEquals('TaskM(a=1, b=2, c=hello, date=2000-01-01)',
                           task.task_id)
-        self.assertEquals('TaskM(a=1, date=10.1, c=hello, b=2)',
+        self.assertEquals('TaskM(a=1, b=2, c=hello, date=10.1)',
                           task.effective_task_id())
 
         task = TaskG()

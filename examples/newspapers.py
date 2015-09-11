@@ -1,17 +1,12 @@
 # coding: utf-8
+# pylint: disable=F0401,E1101
 
 """
 Example of a small pipeline that downloads a couple of newspaper frontpages,
 creates a newline delimited json and indexes it into elasticsearch (version 1.0+).
 """
 
-# pylint: disable=F0401
-# pylint: disable=E1101
-from gluish.common import Executable
-from gluish.intervals import daily
-from gluish.shell import shellout
-from gluish.task import BaseTask
-from gluish.utils import random_string
+from gluish import Executable, daily, shellout, BaseTask, random_string
 import elasticsearch
 import json
 import luigi

@@ -1,32 +1,14 @@
 # coding: utf-8
 
 """
-Gluish - some glue code and utils for luigi.
-
-GLUISH_DATA: where common task place their artefacts
+Gluish - few utils for luigi.
 """
-import requests
-import logging
 
-requests.adapters.DEFAULT_RETRIES = 3
-__version__ = '0.1.79'
+__version__ = '0.2.0'
 
-# environment variable name
-GLUISH_DATA = 'GLUISH_DATA'
-
-try:
-    import gluish.benchmark
-    import gluish.colors
-    import gluish.common
-    import gluish.configuration
-    import gluish.database
-    import gluish.esindex
-    import gluish.format
-    import gluish.intervals
-    import gluish.oai
-    import gluish.parameter
-    import gluish.path
-    import gluish.task
-    import gluish.utils
-except ImportError as err:
-    logging.warn('one or more imports failed: %s' % err)
+from gluish.common import *
+from gluish.format import *
+from gluish.intervals import *
+from gluish.parameter import *
+from gluish.task import *
+from gluish.utils import *

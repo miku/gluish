@@ -1,6 +1,12 @@
 Gluish
 ======
 
+Note: v0.2.0 cleans up some cruft from v0.1.X. v0.2.0 still passes the same
+tests as v0.1.X, but removes a lot of functionality unrelated to luigi. Please
+check, before you upgrade.
+
+----
+
 [![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
 [![pypi downloads](https://img.shields.io/pypi/dm/gluish.svg)](https://pypi.python.org/pypi/gluish)
@@ -99,84 +105,6 @@ class TabularConsumer(DefaultTask):
         return False
 ```
 
-A benchmark decorator
----------------------
-
-Log some running times. Mostly useful in interactive mode.
-
-```python
-from gluish.benchmark import timed
-
-class SomeWork(luigi.Task):
-    @timed
-    def run(self):
-        pass
-
-    def complete(self):
-        return False
-```
-
-Elasticsearch template task
----------------------------
-
-Modeled after [luigi.contrib.CopyToTable](https://github.com/spotify/luigi/blob/01514d4559901ec62432cd13c48d9431b02433be/luigi/contrib/rdbms.py#L13).
-
-```python
-from gluish.esindex import CopyToIndex
-import luigi
-
-class ExampleIndex(CopyToIndex):
-    host = 'localhost'
-    port = 9200
-    index = 'example'
-    doc_type = 'default'
-    purge_existing_index = True
-
-    def docs(self):
-        return [{'_id': 1, 'title': 'An example document.'}]
-
-if __name__ == '__main__':
-    task = ExampleIndex()
-    luigi.build([task], local_scheduler=True)
-```
-
-Elasticsearch support has been added to luigi as [luigi.contrib.esindex](https://github.com/spotify/luigi/pull/364).
-
-FTP mirroring task
-------------------
-
-Mirroring FTP shares. This example reuses the [`DefaultTask`](https://github.com/miku/gluish#a-basic-task-that-knows-its-place) from above. Uses the sophisticated [lftp](http://lftp.yar.ru/) program under the hood, so it needs to be available on your system.
-
-```python
-from gluish.common import FTPMirror
-from gluish.utils import random_string
-import luigi
-
-class MirrorTask(DefaultTask):
-    """ Indicator makes this task run on each call. """
-    indicator = luigi.Parameter(default=random_string())
-
-    def requires(self):
-        return FTPMirror(host='ftp.cs.brown.edu',
-            username='anonymous', password='anonymous',
-            pattern='*pdf', base='/pub/techreports/00')
-
-    def run(self):
-        with self.input().open() as handle:
-            # FTPMirror output is in TSV
-            for row in handle.iter_tsv(cols=('path',)):
-                # do some useful things with the files here ...
-
-    def output(self):
-        return luigi.LocalTarget(path=self.path())
-```
-
-The output of `FTPMirror` is a **single file**, that contains the paths to all mirrored files, one per line.
-
-A short self contained example can be found in [this gist](https://gist.github.com/miku/4d7e9589e63182f88509).
-
-To copy a single file from an FTP server, there is an `FTPFile` template task.
-
 Easy shell calls
 ----------------
 
@@ -263,73 +191,3 @@ class SimpleTask(DefaultTask):
 ```
 
 A short, self contained example can be found in [this gist](https://gist.github.com/miku/e72628ee54fce9f06a34).
-
-If `task.closest` is a relatively expensive operation (FTP mirror, rsync)
-and the workflow uses a lot of `ClosestDateParameter` type of parameters, it is
-convenient to memoize the result of `task.closest()`. A `@memoize` decorator
-makes caching the result simple:
-
-```python
-from gluish.utils import memoize
-    ...
-
-    @memoize
-    def closest(self):
-        return self.date - datetime.timedelta(days=self.date.weekday())
-
-```
-
-----
-
-Development
------------
-
-System package dependencies:
-
-* Ubuntu: libmysqlclient-dev
-* CentOS: mysql-devel
-
-Setup:
-
-    $ git clone git@github.com:miku/gluish.git
-    $ cd gluish
-    $ mkvirtualenv gluish
-    $ pip install -r requirements.txt
-    $ nosetests
-
-Coverage status
----------------
-
-As of [4a7ec26ae6680d880ae20bebd514aba70d801687](https://github.com/miku/gluish/tree/4a7ec26ae6680d880ae20bebd514aba70d801687).
-
-    $ nosetests --verbose --with-coverage --cover-package gluish
-    Name               Stmts   Miss  Cover   Missing
-    ------------------------------------------------
-    gluish                 4      0   100%
-    gluish.benchmark      32      3    91%   59-62
-    gluish.colors         14      4    71%   12, 20, 24, 32
-    gluish.common        103     18    83%   68, 72, 80-81, 83, 86, ...
-    gluish.database       50     18    64%   12, 69-76, 79-88, 91-94
-    gluish.esindex       105     71    32%   40-43, 62-66, 70-71, 77-86, ...
-    gluish.format         27      2    93%   69, 72
-    gluish.intervals      16      0   100%
-    gluish.oai            58     14    76%   83-99
-    gluish.parameter       5      0   100%
-    gluish.path           82     14    83%   25, 39-48, 101-102, 165
-    gluish.task           45      2    96%   95, 114
-    gluish.utils          80      3    96%   35, 127, 166
-    ------------------------------------------------
-    TOTAL                621    149    76%
-    ----------------------------------------------------------------------
-    Ran 33 tests in 0.269s
-
-Pylint hook
------------
-
-    $ pip install git-pylint-commit-hook
-    $ touch .git/hooks/pre-commit
-    $ chmod +x .git/hooks/pre-commit
-    $ echo '
-    #!/usr/bin/env bash
-    git-pylint-commit-hook
-    ' > .git/hooks/pre-commit
