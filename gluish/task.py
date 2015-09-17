@@ -90,7 +90,15 @@ class BaseTask(luigi.Task):
                     es = '-'.join([str(v) for v in getattr(self, name)])
                     parts.append('%s-%s' % (name, es))
                     continue
-                parts.append('%s-%s' % (name, getattr(self, name)))
+                
+                val = getattr(self, name)
+
+                if isinstance(val, datetime.datetime):
+                    val = val.strftime('%Y-%m-%dT%H%M%S')
+                elif isinstance(val, datetime.date):
+                    val = val.strftime('%Y-%m-%d')
+                
+                parts.append('%s-%s' % (name, val))
 
             name = '-'.join(sorted(parts))
             if len(name) == 0:
