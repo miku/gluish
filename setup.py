@@ -19,7 +19,7 @@ install_requires = [
 ]
 
 setup(name='gluish',
-      version='0.2.0',
+      version='0.2.1',
       description='Luigi helper.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
