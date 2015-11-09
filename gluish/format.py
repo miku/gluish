@@ -42,7 +42,7 @@ Example:
 
 """
 
-from gluish.utils import random_string
+from gluish.utils import random_string, which
 import collections
 import functools
 import luigi
@@ -100,4 +100,30 @@ class TSVFormat(luigi.format.Format):
         output_pipe.write_tsv = functools.partial(write_tsv, output_pipe)
         return output_pipe
 
+class GzipFormat(luigi.format.Format):
+    """
+    A gzip format, that upgrades itself to pigz, if it's installed.
+    """
+    input = 'bytes'
+    output = 'bytes'
+
+    def __init__(self, compression_level=None):
+        self.compression_level = compression_level
+        self.gzip = ["gzip"]
+        self.gunzip = ["gunzip"]
+
+        if which('pigz'):
+            self.gzip = ["pigz"]
+            self.gunzip = ["unpigz"]
+
+    def pipe_reader(self, input_pipe):
+        return luigi.format.InputPipeProcessWrapper(self.gunzip, input_pipe)
+
+    def pipe_writer(self, output_pipe):
+        args = self.gzip
+        if self.compression_level is not None:
+            args.append('-' + str(int(self.compression_level)))
+        return luigi.format.OutputPipeProcessWrapper(args, output_pipe)
+
 TSV = TSVFormat()
+Gzip = GzipFormat()

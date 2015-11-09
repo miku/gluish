@@ -29,6 +29,7 @@ A few utilities.
 
 from dateutil import relativedelta
 import logging
+import os
 import random
 import re
 import string
@@ -60,6 +61,26 @@ def date_range(start_date, end_date, increment, period):
     while next <= end_date:
         yield next
         next += delta
+
+def which(program):
+    """
+    Search for program in PATH.
+    """
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 def shellout(template, **kwargs):
     """
