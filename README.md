@@ -1,9 +1,11 @@
 Gluish
 ======
 
-Note: v0.2.0 cleans up some cruft from v0.1.X. v0.2.0 still passes the same
+Note: v0.2.X cleans up some cruft from v0.1.X. v0.2.X still passes the same
 tests as v0.1.X, but removes a lot of functionality unrelated to luigi. Please
 check, before you upgrade.
+
+Luigi 2.0 compatibility: gluish 0.2.3 or higher.
 
 ----
 
