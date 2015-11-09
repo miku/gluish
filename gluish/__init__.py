@@ -1,4 +1,5 @@
 # coding: utf-8
+# pylint: disable=W0401
 #
 #  Copyright 2015 by Leipzig University Library, http://ub.uni-leipzig.de
 #                 by The Finc Authors, http://finc.info
@@ -26,7 +27,7 @@
 Gluish - few utils for luigi.
 """
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 from gluish.common import *
 from gluish.format import *
