@@ -107,7 +107,7 @@ class BaseTask(luigi.Task):
                 if name == 'date' and is_closest_date_parameter(self, 'date'):
                     parts.append('date-%s' % self.closest())
                     continue
-                if param.is_list:
+                if hasattr(param, 'is_list') and param.is_list:
                     es = '-'.join([str(v) for v in getattr(self, name)])
                     parts.append('%s-%s' % (name, es))
                     continue
