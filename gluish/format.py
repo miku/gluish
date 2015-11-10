@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-# coding: utf-8
 #
 #  Copyright 2015 by Leipzig University Library, http://ub.uni-leipzig.de
 #                 by The Finc Authors, http://finc.info
