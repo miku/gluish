@@ -82,7 +82,8 @@ def which(program):
 
     return None
 
-def shellout(template, **kwargs):
+def shellout(template, preserve_whitespace=False, executable='/bin/bash',
+             ignoremap=None, encoding=None, **kwargs):
     """
     Takes a shell command template and executes it. The template must use
     the new (2.6+) format mini language. `kwargs` must contain any defined
@@ -105,11 +106,10 @@ def shellout(template, **kwargs):
         ....
 
     """
-    preserve_whitespace = kwargs.get('preserve_whitespace', False)
     if not 'output' in kwargs:
         kwargs.update({'output': tempfile.mkstemp(prefix='gluish-')[1]})
-    ignoremap = kwargs.get('ignoremap', {})
-    encoding = kwargs.get('encoding', None)
+    if ignoremap is None:
+        ignoremap = {}
     if encoding:
         command = template.decode(encoding).format(**kwargs)
     else:
@@ -117,7 +117,7 @@ def shellout(template, **kwargs):
     if not preserve_whitespace:
         command = re.sub('[ \t\n]+', ' ', command)
     logger.debug(command)
-    code = subprocess.call([command], shell=True)
+    code = subprocess.call([command], shell=True, executable=executable)
     if not code == 0:
         if code in ignoremap:
             logger.info("Ignoring error via ignoremap: %s" % ignoremap.get(code))
