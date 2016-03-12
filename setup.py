@@ -34,7 +34,7 @@ Additionally, provide some smaller utilities, like a TSV format.
 from setuptools import setup
 
 setup(name='gluish',
-      version='0.2.4',
+      version='0.2.5',
       description='Luigi helper.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
@@ -45,8 +45,8 @@ setup(name='gluish',
       package_dir={'gluish': 'gluish'},
       install_requires=[
         'luigi>=1.0.20',
-        'python-dateutil==2.2',
-        'pytz==2014.4',
-        'six==1.9.0',
+        'python-dateutil>=2.2',
+        'pytz>=2014.4',
+        'six>=1.9.0',
       ],
 )
