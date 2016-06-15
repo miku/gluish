@@ -27,7 +27,6 @@
 A few utilities.
 """
 
-from dateutil import relativedelta
 import logging
 import os
 import random
@@ -35,6 +34,8 @@ import re
 import string
 import subprocess
 import tempfile
+
+from dateutil import relativedelta
 
 __all__ = [
     'date_range',

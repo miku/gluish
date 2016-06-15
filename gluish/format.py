@@ -41,10 +41,11 @@ Example:
 
 """
 
-from gluish.utils import random_string, which
 import collections
 import functools
+
 import luigi
+from gluish.utils import random_string, which
 
 __all__ = ['TSV']
 

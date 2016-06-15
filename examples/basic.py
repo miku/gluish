@@ -26,10 +26,11 @@
 Basic usage of BaseTask.
 """
 
-from gluish.task import BaseTask
 import datetime
-import luigi
 import tempfile
+
+import luigi
+from gluish.task import BaseTask
 
 
 class ProjectBaseTask(BaseTask):

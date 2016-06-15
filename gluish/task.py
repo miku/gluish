@@ -30,12 +30,13 @@ Default task
 A default task, that covers file system layout.
 """
 
-from gluish.parameter import ClosestDateParameter
 import datetime
 import hashlib
-import luigi
 import os
 import tempfile
+
+import luigi
+from gluish.parameter import ClosestDateParameter
 
 __all__ = [
     'BaseTask',

@@ -23,8 +23,9 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 #
 
-import luigi
 import os
+
+import luigi
 
 __all__ = ['Executable']
 

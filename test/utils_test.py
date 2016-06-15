@@ -27,12 +27,14 @@
 Test mixed utils.
 """
 
-from gluish.utils import date_range, shellout
 import datetime
 import os
 import sys
 import tempfile
 import unittest
+
+from gluish.utils import date_range, shellout
+
 
 class UtilsTest(unittest.TestCase):
     """ Test various utility functions. """

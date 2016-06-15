@@ -28,12 +28,13 @@ Example of a small pipeline that downloads a couple of newspaper frontpages,
 creates a newline delimited json and indexes it into elasticsearch (version 1.0+).
 """
 
-from gluish import Executable, daily, shellout, BaseTask, random_string
-import elasticsearch
-import json
-import luigi
 import hashlib
+import json
 import tempfile
+
+import elasticsearch
+import luigi
+from gluish import BaseTask, Executable, daily, random_string, shellout
 
 NEWSPAPERS = (
     'http://bild.de/',

@@ -24,6 +24,7 @@
 
 import unittest
 
+
 class ParameterTest(unittest.TestCase):
     """ Test parameters. """
 

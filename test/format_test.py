@@ -22,10 +22,12 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 #
 
-from gluish.format import write_tsv, iter_tsv, TSV
-import luigi
-import unittest
 import tempfile
+import unittest
+
+import luigi
+from gluish.format import TSV, iter_tsv, write_tsv
+
 
 class FormatTest(unittest.TestCase):
 

@@ -27,12 +27,14 @@
 Test intervals.
 """
 
-from gluish.intervals import (every_minute, hourly, daily, weekly, biweekly,
-                              monthly, quarterly, semiyearly, yearly)
-from dateutil.tz import tzlocal
 import datetime
-import pytz
 import unittest
+
+import pytz
+from dateutil.tz import tzlocal
+from gluish.intervals import (biweekly, daily, every_minute, hourly, monthly,
+                              quarterly, semiyearly, weekly, yearly)
+
 
 class IntervalsTest(unittest.TestCase):
     """ Test intervals. """

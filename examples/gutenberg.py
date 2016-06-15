@@ -54,9 +54,11 @@ The file should look like this:
     1616 Social life and customs
 """
 
-from gluish import Executable, weekly, shellout, BaseTask, TSV
-import luigi
 import tempfile
+
+import luigi
+from gluish import TSV, BaseTask, Executable, shellout, weekly
+
 
 class GutenbergTask(BaseTask):
     BASE = tempfile.gettempdir()

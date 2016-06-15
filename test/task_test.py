@@ -27,15 +27,16 @@
 Test tasks.
 """
 
-from gluish.parameter import ClosestDateParameter
-from gluish.task import BaseTask, MockTask, is_closest_date_parameter
-from gluish.utils import shellout
 import datetime
-import luigi
 import os
 import shutil
 import tempfile
 import unittest
+
+import luigi
+from gluish.parameter import ClosestDateParameter
+from gluish.task import BaseTask, MockTask, is_closest_date_parameter
+from gluish.utils import shellout
 
 FIXTURES = os.path.join(os.path.dirname(__file__), 'fixtures')
 
