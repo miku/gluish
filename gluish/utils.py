@@ -83,12 +83,20 @@ def which(program):
     return None
 
 def shellout(template, preserve_whitespace=False, executable='/bin/bash',
-             ignoremap=None, encoding=None, **kwargs):
+             ignoremap=None, encoding=None, pipefail=False, **kwargs):
     """
-    Takes a shell command template and executes it. The template must use
-    the new (2.6+) format mini language. `kwargs` must contain any defined
-    placeholder, only `output` is optional.
-    Raises RuntimeError on nonzero exit codes.
+
+    Takes a shell command template and executes it. The template must use the
+    new (2.6+) format mini language. `kwargs` must contain any defined
+    placeholder, only `output` is optional. If `pipefail` is `True` a subshell
+    environment will be spawned, where a failed pipe will cause an error as
+    well. If `preserve_whitespace` is `True`, no whitespace normalization is
+    performed. A custom shell executable name can be passed in `executable` and
+    defaults to `/bin/bash`.
+
+    Raises RuntimeError on nonzero exit codes. To ignore certain errors, pass a
+    dictionary in `ignoremap`, with the error code to ignore as key and a string
+    message as value.
 
     Simple template:
 
@@ -116,6 +124,8 @@ def shellout(template, preserve_whitespace=False, executable='/bin/bash',
         command = template.format(**kwargs)
     if not preserve_whitespace:
         command = re.sub('[ \t\n]+', ' ', command)
+    if pipefail:
+        command = '(set -o pipefail && %s)' % command
     logger.debug(command)
     code = subprocess.call([command], shell=True, executable=executable)
     if not code == 0:
