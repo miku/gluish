@@ -290,18 +290,17 @@ class TaskTest(unittest.TestCase):
     def test_effective_id(self):
         """ Test effective_task_id """
         task = TaskK()
-        self.assertEquals('TaskK(date=2000-01-01)', task.task_id)
+        self.assertTrue(task.task_id.startswith('TaskK_2000_01_01'))
         self.assertEquals('TaskK(date=10.1)', task.effective_task_id())
 
         task = TaskM()
-        self.assertEquals('TaskM(a=1, b=2, c=hello, date=2000-01-01)',
-                          task.task_id)
+        self.assertTrue(task.task_id.startswith('TaskM_1_2_hello_'))
         self.assertEquals('TaskM(a=1, b=2, c=hello, date=10.1)',
                           task.effective_task_id())
 
         task = TaskG()
-        self.assertEquals('TaskG(date=2000-01-01)', task.task_id)
-        self.assertEquals('TaskG(date=2000-01-01)', task.effective_task_id())
+        self.assertTrue(task.task_id.startswith('TaskG_2000_01_01_'))
+        self.assertTrue(task.effective_task_id().startswith('TaskG_2000_01_01_'))
 
     def test_sharded_task(self):
         """ Test, if task output is sharded. """
