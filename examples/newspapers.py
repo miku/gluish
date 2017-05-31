@@ -67,7 +67,7 @@ class DownloadPage(FrontpageTask):
     def run(self):
         """ Just run wget quietly. """
         output = shellout('wget -q "{url}" -O {output}', url=self.url)
-        luigi.File(output).move(self.output().path)
+        luigi.LocalTarget(output).move(self.output().path)
 
     def output(self):
         """ Use the digest version, since URL can be ugly. """

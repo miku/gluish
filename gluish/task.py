@@ -148,7 +148,7 @@ class MockTask(BaseTask):
 
     def run(self):
         """ Just copy the fixture, so we have some output. """
-        luigi.File(path=self.fixture).copy(self.output().path)
+        luigi.LocalTarget(path=self.fixture).copy(self.output().path)
 
     def output(self):
         """ Mock output. """

@@ -113,7 +113,7 @@ def shellout(template, preserve_whitespace=False, executable='/bin/bash',
 
         ...
         tmp = shellout('wc -l < {input} > {output}', input=self.input().path)
-        luigi.File(tmp).move(self.output().path)
+        luigi.LocalTarget(tmp).move(self.output().path)
         ....
 
     """

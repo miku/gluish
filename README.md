@@ -144,7 +144,7 @@ class GIFScreencast(DefaultTask):
                                     -pix_fmt rgb24 -r 10 -f gif - |
                              gifsicle --optimize=3 --delay={delay} > {output} """,
                              infile=self.filename, delay=self.delay)
-        luigi.File(output).move(self.output().path)
+        luigi.LocalTarget(output).move(self.output().path)
 
     def output(self):
         return luigi.LocalTarget(path=self.path())

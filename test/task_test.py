@@ -190,7 +190,7 @@ class TaskN(TestTask):
 
     def run(self):
         """ Simulate touch. """
-        luigi.File(path=self.output().path).open('w')
+        luigi.LocalTarget(path=self.output().path).open('w')
 
     def output(self):
         """ output """

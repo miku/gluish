@@ -81,7 +81,7 @@ class GutenbergDump(GutenbergTask):
         url = "http://gutenberg.readingroo.ms/cache/generated/feeds/catalog.marc.bz2"
         output = shellout('wget -q "{url}" -O {output}', url=url)
         output = shellout('bunzip2 {input} -c > {output}', input=output)
-        luigi.File(output).move(self.output().path)
+        luigi.LocalTarget(output).move(self.output().path)
 
     def output(self):
         return luigi.LocalTarget(path=self.path(ext='mrc'))
@@ -99,7 +99,7 @@ class GutenbergIndexTerms(GutenbergTask):
     def run(self):
         output = shellout('marctotsv -k -s "|" {input} 001 653.a > {output}',
                  input=self.input().get('dump').path)
-        with luigi.File(output, format=TSV).open() as handle:
+        with luigi.LocalTarget(output, format=TSV).open() as handle:
             with self.output().open('w') as output:
                 for row in handle.iter_tsv(cols=('id', 'terms')):
                     for subfield in row.terms.split('|'):
@@ -121,7 +121,7 @@ class GutenbergTopIndexTerms(GutenbergTask):
     def run(self):
         output = shellout("cut -f 2- {input}| sort | uniq -c | sort -nr > {output}",
                           input=self.input().path)
-        luigi.File(output).move(self.output().path)
+        luigi.LocalTarget(output).move(self.output().path)
 
     def output(self):
         return luigi.LocalTarget(path=self.path(), format=TSV)
