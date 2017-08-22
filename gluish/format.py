@@ -41,19 +41,26 @@ Example:
 
 """
 
+from __future__ import unicode_literals
+
 import collections
 import functools
+from builtins import str
 
 import luigi
+
 from gluish.utils import random_string, which
 
 __all__ = ['TSV']
+
 
 def write_tsv(output_stream, *tup):
     """
     Write argument list in `tup` out as a tab-separeated row to the stream.
     """
-    output_stream.write('\t'.join([str(s) for s in tup]) + '\n')
+    value = '\t'.join([s for s in tup]) + '\n'
+    output_stream.write(str(value))
+
 
 def iter_tsv(input_stream, cols=None):
     """
@@ -76,16 +83,18 @@ def iter_tsv(input_stream, cols=None):
                 for c in cols]
         Record = collections.namedtuple('Record', cols)
         for line in input_stream:
-            yield Record._make(line.rstrip('\n').split('\t'))
+            yield Record._make(str(line).rstrip('\n').split('\t'))
     else:
         for line in input_stream:
-            yield tuple(line.rstrip('\n').split('\t'))
+            yield tuple(str(line).rstrip('\n').split('\t'))
+
 
 class TSVFormat(luigi.format.Format):
     """
     A basic CSV/TSV format.
     Discussion: https://groups.google.com/forum/#!topic/luigi-user/F813st16xqw
     """
+
     def hdfs_reader(self, input_pipe):
         raise NotImplementedError()
 
@@ -99,6 +108,7 @@ class TSVFormat(luigi.format.Format):
     def pipe_writer(self, output_pipe):
         output_pipe.write_tsv = functools.partial(write_tsv, output_pipe)
         return output_pipe
+
 
 class GzipFormat(luigi.format.Format):
     """
