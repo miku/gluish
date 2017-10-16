@@ -54,15 +54,16 @@ from gluish.utils import random_string, which
 __all__ = ['TSV']
 
 
-def write_tsv(output_stream, *tup):
+def write_tsv(output_stream, *tup, **kwargs):
     """
     Write argument list in `tup` out as a tab-separeated row to the stream.
     """
+    encoding = kwargs.get('encoding') or 'utf-8'
     value = '\t'.join([s for s in tup]) + '\n'
-    output_stream.write(str(value))
+    output_stream.write(value.encode(encoding))
 
 
-def iter_tsv(input_stream, cols=None):
+def iter_tsv(input_stream, cols=None, encoding='utf-8'):
     """
     If a tuple is given in cols, use the elements as names to construct
     a namedtuple.
@@ -83,10 +84,10 @@ def iter_tsv(input_stream, cols=None):
                 for c in cols]
         Record = collections.namedtuple('Record', cols)
         for line in input_stream:
-            yield Record._make(str(line).rstrip('\n').split('\t'))
+            yield Record._make(line.decode(encoding).rstrip('\n').split('\t'))
     else:
         for line in input_stream:
-            yield tuple(str(line).rstrip('\n').split('\t'))
+            yield tuple(line.decode(encoding).rstrip('\n').split('\t'))
 
 
 class TSVFormat(luigi.format.Format):
