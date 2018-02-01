@@ -23,11 +23,47 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 #
 
+import datetime
+import json
+import logging
 import os
 
 import luigi
+import requests
+from gluish.parameter import ClosestDateParameter
+from gluish.utils import shellout
 
-__all__ = ['Executable']
+__all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository', 'CleanSolrIndex', 'FillSolrIndex']
+
+logger = logging.getLogger('gluish')
+
+
+class GluishError(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+
+class HTTPError(GluishError):
+    """Exception raised for HTTP errors.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        self.message = message
+
+
+class SolrCleanupError(GluishError):
+    """Exception raised for Solr cleanup errors.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        self.message = message
+
 
 def which(program):
     """
@@ -50,6 +86,36 @@ def which(program):
 
     return None
 
+
+def check(service):
+    """
+    Return `None` if HTTP services returns status code != 200.
+    """
+    try:
+        response = requests.get(service)
+
+        if response.status_code == 200:
+            return 'available'
+
+        logger.error('HTTP service %s returns %d' % (service, response.status_code))
+    except Exception as err:
+        logger.error('Cannot establish connection to HTTP service %s: %s' % (service, str(err)))
+
+    return None
+
+
+def getfirstline(file, default):
+    """
+    Returns the first line of a file.
+    """
+    with open(file, 'rb') as fh:
+        content = fh.readlines()
+        if len(content) == 1:
+            return content[0].decode('utf-8').strip('\n')
+
+    return default
+
+
 class Executable(luigi.Task):
     """
     Checks, whether an external executable is available. This task will consider
@@ -64,3 +130,215 @@ class Executable(luigi.Task):
 
     def complete(self):
         return which(self.name) is not None
+
+
+class Available(luigi.Task):
+    """
+    Checks, whether an HTTP service is available or not. This task will consider
+    itself complete, only if the HTTP service return a 200.
+    """
+    service = luigi.Parameter()
+    message = luigi.Parameter(default="")
+
+    def run(self):
+        """ Only run if, task is not complete. """
+        raise RuntimeError('HTTP service %s is not available (%s)' % (self.service, self.message))
+
+    def complete(self):
+        return check(self.service) is not None
+
+
+class GitCloneRepository(luigi.Task):
+    """
+    Checks, whether a certain directory already exists (that should contain a Git repository) - otherwise it will be cloned.
+    """
+    gitrepository = luigi.Parameter()
+    repositorydirectory = luigi.Parameter()
+    basedirectory = luigi.Parameter()
+
+    def requires(self):
+        return Executable(name='git')
+
+    def run(self):
+        currentdir = os.curdir
+
+        self.output().makedirs()
+        os.chdir(str(self.basedirectory))
+        shellout("""git clone {gitrepository}""", gitrepository=self.gitrepository)
+
+        os.chdir(currentdir)
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(self.basedirectory, str(self.repositorydirectory)))
+
+
+class GitUpdateRepository(luigi.Task):
+    """
+    Updates an existing Git repository
+    """
+    gitrepository = luigi.Parameter()
+    repositorydirectory = luigi.Parameter()
+    basedirectory = luigi.Parameter()
+    branch = luigi.Parameter(default="master", significant=False)
+
+    def requires(self):
+        return [
+            GitCloneRepository(gitrepository=self.gitrepository,
+                               repositorydirectory=self.repositorydirectory,
+                               basedirectory=self.basedirectory),
+            Executable(name='git')
+        ]
+
+    def run(self):
+        currentdir = os.curdir
+
+        os.chdir(self.output().path)
+        shellout("""git checkout {branch}""", branch=self.branch)
+        shellout("""git pull origin {branch}""", branch=self.branch)
+
+        os.chdir(currentdir)
+
+    def complete(self):
+        if not self.output().exists():
+            return False
+
+        currentdir = os.curdir
+
+        os.chdir(self.output().path)
+        output = shellout("""git fetch origin {branch} > {output} 2>&1""", branch=self.branch)
+
+        result = True
+
+        with open(output, 'rb') as fh:
+            content = fh.readlines()
+            if len(content) >= 3:
+                result = False
+
+        revparseoutput = shellout("""git rev-parse {branch} > {output} 2>&1""", branch=self.branch)
+        originrevparseoutput = shellout("""git rev-parse origin/{branch} > {output} 2>&1""", branch=self.branch)
+
+        revparse = getfirstline(revparseoutput, "0")
+        originrevparse = getfirstline(originrevparseoutput, "1")
+
+        if revparse != originrevparse:
+            result = False
+
+        os.chdir(currentdir)
+
+        return result
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(str(self.basedirectory), str(self.repositorydirectory)))
+
+
+class CleanSolrIndex(luigi.Task):
+    """
+    Cleans a given Solr index from already existing data of a data package
+    """
+    date = ClosestDateParameter(default=datetime.date.today())
+    solruri = luigi.Parameter()
+    solrcore = luigi.Parameter()
+    sourceid = luigi.Parameter()
+    taskdir = luigi.Parameter()
+    salt = luigi.Parameter()
+    uritemplate = '{solruri}{solrcore}/update?commit=true'
+    headers = {'Content-Type': 'text/xml'}
+    payloadtemplate = '<delete><query>source_id:{sourceid}</query></delete>'
+
+    def requires(self):
+        return Available(service=self.solruri,
+                         message="provide a running Solr, please")
+
+    def run(self):
+        uri = self.uritemplate.format(solruri=self.solruri,
+                                      solrcore=self.solrcore)
+        payload = self.payloadtemplate.format(sourceid=self.sourceid)
+        result = {}
+
+        try:
+            response = requests.post(uri, data=payload, headers=self.headers)
+
+            result['status_code'] = response.status_code
+            result['content'] = response.content.decode('utf-8')
+
+            if result['status_code'] != 200:
+                raise SolrCleanupError('could not successfully clean Solr core \'%s\' (status code = \'%d\')' % (
+                    uri, response.status_code))
+
+            if not str(result['content']).startswith(
+                    '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<response>\n<lst name=\"responseHeader\"><int name=\"status\">0</int>'):
+                raise SolrCleanupError(
+                    'could not successfully clean Solr core \'%s\' (response = \'%s\')' % (uri, result['content']))
+        except requests.exceptions.ConnectionError as error:
+            result['status_code'] = 404
+            result['error'] = str(error).replace('"', '\\"')
+
+            raise HTTPError('could not successfully establish connection to Solr index \'%s\'' % uri)
+        finally:
+            with self.output().open('w') as outfile:
+                outfile.write(json.dumps(result, indent=None) + "\n")
+
+    def output(self):
+        filename = 'response_' + str(self.salt) + '.json'
+        return luigi.LocalTarget(path=os.path.join(self.taskdir, filename))
+
+    def complete(self):
+        # TODO maybe define a better complete criteria (?) (background: complete() will be executed before run())
+        # e.g. check, whether something of this source is in the index
+        # or move all the stuff from run to complete (?)
+        if not self.output().exists():
+            return False
+
+        with self.output().open('r') as resultfile:
+            result = json.loads(resultfile.read())
+
+            if result['status_code'] != 200:
+                return False
+
+            if not str(result['content']).startswith(
+                    '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<response>\n<lst name=\"responseHeader\"><int name=\"status\">0</int>'):
+                return False
+
+            return True
+
+
+class FillSolrIndex(luigi.Task):
+    # TODO: define proper complete criteria (?)
+    # e.g. check, whether the amount of records that should be loaded into the index is index (if not, then index load is not successfully)
+    """
+    Loads processed data of a data package into a given Solr index (with help of solrbulk)
+    """
+    date = ClosestDateParameter(default=datetime.date.today())
+    solruri = luigi.Parameter()
+    solrcore = luigi.Parameter()
+    sourceid = luigi.Parameter()
+    input = luigi.Parameter()
+    taskdir = luigi.Parameter()
+    outputfilename = luigi.Parameter()
+    salt = luigi.Parameter()
+
+    def requires(self):
+        return [
+            Available(service=self.solruri,
+                      message="provide a running Solr, please"),
+            Executable(name='solrbulk'),
+            CleanSolrIndex(date=self.date,
+                           solruri=self.solruri,
+                           solrcore=self.solrcore,
+                           sourceid=self.sourceid,
+                           taskdir=self.taskdir,
+                           salt=self.salt)
+        ]
+
+    def run(self):
+        server = str(self.solruri) + str(self.solrcore)
+        inputpath = self.input
+        output = shellout(
+            """solrbulk -verbose -server {server} -w 2 < {input}""",
+            server=server,
+            input=inputpath)
+        luigi.LocalTarget(output).move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(self.taskdir, str(self.outputfilename)))
+
