@@ -38,37 +38,11 @@ __all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository
 logger = logging.getLogger('gluish')
 
 
-class GluishError(Exception):
-    """Base class for exceptions in this module."""
-    pass
-
-
-class HTTPError(GluishError):
-    """Exception raised for HTTP errors.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-
-
-class SolrCleanupError(GluishError):
-    """Exception raised for Solr cleanup errors.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-
-
 def which(program):
     """
     Return `None` if no executable can be found.
     """
+
     def is_exe(fpath):
         """ Is `fpath` executable? ` """
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -87,21 +61,14 @@ def which(program):
     return None
 
 
-def check(service):
+def service_is_up(service):
     """
-    Return `None` if HTTP services returns status code != 200.
+    Return `False` if HTTP services returns status code != 200.
     """
     try:
-        response = requests.get(service)
-
-        if response.status_code == 200:
-            return 'available'
-
-        logger.error('HTTP service %s returns %d' % (service, response.status_code))
-    except Exception as err:
-        logger.error('Cannot establish connection to HTTP service %s: %s' % (service, str(err)))
-
-    return None
+        return requests.get(service).status_code == 200
+    except:
+        return False
 
 
 def getfirstline(file, default):
@@ -114,6 +81,22 @@ def getfirstline(file, default):
             return content[0].decode('utf-8').strip('\n')
 
     return default
+
+
+class chdir(object):
+    """
+    Change directory temporarily.
+    """
+
+    def __init__(self, path):
+        self.wd = os.getcwd()
+        self.dir = path
+
+    def __enter__(self):
+        os.chdir(self.dir)
+
+    def __exit__(self, *args):
+        os.chdir(self.wd)
 
 
 class Executable(luigi.Task):
@@ -145,7 +128,7 @@ class Available(luigi.Task):
         raise RuntimeError('HTTP service %s is not available (%s)' % (self.service, self.message))
 
     def complete(self):
-        return check(self.service) is not None
+        return service_is_up(self.service)
 
 
 class GitCloneRepository(luigi.Task):
@@ -160,13 +143,9 @@ class GitCloneRepository(luigi.Task):
         return Executable(name='git')
 
     def run(self):
-        currentdir = os.curdir
-
         self.output().makedirs()
-        os.chdir(str(self.basedirectory))
-        shellout("""git clone {gitrepository}""", gitrepository=self.gitrepository)
-
-        os.chdir(currentdir)
+        with chdir(str(self.basedirectory)):
+            shellout("""git clone {gitrepository}""", gitrepository=self.gitrepository)
 
     def output(self):
         return luigi.LocalTarget(path=os.path.join(self.basedirectory, str(self.repositorydirectory)))
@@ -190,40 +169,32 @@ class GitUpdateRepository(luigi.Task):
         ]
 
     def run(self):
-        currentdir = os.curdir
-
-        os.chdir(self.output().path)
-        shellout("""git checkout {branch}""", branch=self.branch)
-        shellout("""git pull origin {branch}""", branch=self.branch)
-
-        os.chdir(currentdir)
+        with chdir(str(self.output().path)):
+            shellout("""git checkout {branch}""", branch=self.branch)
+            shellout("""git pull origin {branch}""", branch=self.branch)
 
     def complete(self):
         if not self.output().exists():
             return False
 
-        currentdir = os.curdir
+        with chdir(str(self.output().path)):
+            output = shellout("""git fetch origin {branch} > {output} 2>&1""", branch=self.branch)
 
-        os.chdir(self.output().path)
-        output = shellout("""git fetch origin {branch} > {output} 2>&1""", branch=self.branch)
+            result = True
 
-        result = True
+            with open(output, 'rb') as fh:
+                content = fh.readlines()
+                if len(content) >= 3:
+                    result = False
 
-        with open(output, 'rb') as fh:
-            content = fh.readlines()
-            if len(content) >= 3:
+            revparseoutput = shellout("""git rev-parse {branch} > {output} 2>&1""", branch=self.branch)
+            originrevparseoutput = shellout("""git rev-parse origin/{branch} > {output} 2>&1""", branch=self.branch)
+
+            revparse = getfirstline(revparseoutput, "0")
+            originrevparse = getfirstline(originrevparseoutput, "1")
+
+            if revparse != originrevparse:
                 result = False
-
-        revparseoutput = shellout("""git rev-parse {branch} > {output} 2>&1""", branch=self.branch)
-        originrevparseoutput = shellout("""git rev-parse origin/{branch} > {output} 2>&1""", branch=self.branch)
-
-        revparse = getfirstline(revparseoutput, "0")
-        originrevparse = getfirstline(originrevparseoutput, "1")
-
-        if revparse != originrevparse:
-            result = False
-
-        os.chdir(currentdir)
 
         return result
 
@@ -262,18 +233,18 @@ class CleanSolrIndex(luigi.Task):
             result['content'] = response.content.decode('utf-8')
 
             if result['status_code'] != 200:
-                raise SolrCleanupError('could not successfully clean Solr core \'%s\' (status code = \'%d\')' % (
+                raise RuntimeError("""could not successfully clean Solr core '%s' (status code = '%d')""" % (
                     uri, response.status_code))
 
             if not str(result['content']).startswith(
-                    '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<response>\n<lst name=\"responseHeader\"><int name=\"status\">0</int>'):
-                raise SolrCleanupError(
-                    'could not successfully clean Solr core \'%s\' (response = \'%s\')' % (uri, result['content']))
+                    """<?xml version="1.0" encoding="UTF-8"?>\n<response>\n<lst name="responseHeader"><int name="status">0</int>"""):
+                raise RuntimeError(
+                    """could not successfully clean Solr core '%s' (response = '%s')""" % (uri, result['content']))
         except requests.exceptions.ConnectionError as error:
             result['status_code'] = 404
             result['error'] = str(error).replace('"', '\\"')
 
-            raise HTTPError('could not successfully establish connection to Solr index \'%s\'' % uri)
+            raise RuntimeError("""could not successfully establish connection to Solr index '%s'""" % uri)
         finally:
             with self.output().open('w') as outfile:
                 outfile.write(json.dumps(result, indent=None) + "\n")
@@ -296,7 +267,7 @@ class CleanSolrIndex(luigi.Task):
                 return False
 
             if not str(result['content']).startswith(
-                    '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<response>\n<lst name=\"responseHeader\"><int name=\"status\">0</int>'):
+                    """<?xml version="1.0" encoding="UTF-8"?>\n<response>\n<lst name="responseHeader"><int name="status">0</int>"""):
                 return False
 
             return True
@@ -341,4 +312,3 @@ class FillSolrIndex(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(path=os.path.join(self.taskdir, str(self.outputfilename)))
-
