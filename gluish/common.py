@@ -209,12 +209,12 @@ class CleanSolrIndex(luigi.Task):
     date = ClosestDateParameter(default=datetime.date.today())
     solruri = luigi.Parameter()
     solrcore = luigi.Parameter()
-    sourceid = luigi.Parameter()
+    deletequery = luigi.Parameter()
     taskdir = luigi.Parameter()
     salt = luigi.Parameter()
     uritemplate = '{solruri}{solrcore}/update?commit=true'
     headers = {'Content-Type': 'text/xml'}
-    payloadtemplate = '<delete><query>source_id:{sourceid}</query></delete>'
+    payloadtemplate = '<delete><query>{deletequery}</query></delete>'
 
     def requires(self):
         return Available(service=self.solruri,
@@ -223,7 +223,7 @@ class CleanSolrIndex(luigi.Task):
     def run(self):
         uri = self.uritemplate.format(solruri=self.solruri,
                                       solrcore=self.solrcore)
-        payload = self.payloadtemplate.format(sourceid=self.sourceid)
+        payload = self.payloadtemplate.format(deletequery=self.deletequery)
         result = {}
 
         try:
@@ -282,7 +282,7 @@ class FillSolrIndex(luigi.Task):
     date = ClosestDateParameter(default=datetime.date.today())
     solruri = luigi.Parameter()
     solrcore = luigi.Parameter()
-    sourceid = luigi.Parameter()
+    deletequery = luigi.Parameter()
     input = luigi.Parameter()
     taskdir = luigi.Parameter()
     outputfilename = luigi.Parameter()
@@ -296,7 +296,7 @@ class FillSolrIndex(luigi.Task):
             CleanSolrIndex(date=self.date,
                            solruri=self.solruri,
                            solrcore=self.solrcore,
-                           sourceid=self.sourceid,
+                           deletequery=self.deletequery,
                            taskdir=self.taskdir,
                            salt=self.salt)
         ]
