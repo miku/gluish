@@ -24,16 +24,16 @@
 #
 
 import datetime
-import json
 import logging
 import os
 
 import luigi
 import requests
+
 from gluish.parameter import ClosestDateParameter
 from gluish.utils import shellout
 
-__all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository', 'CleanSolrIndex', 'FillSolrIndex']
+__all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository', 'FillSolrIndex']
 
 logger = logging.getLogger('gluish')
 
@@ -202,77 +202,6 @@ class GitUpdateRepository(luigi.Task):
         return luigi.LocalTarget(path=os.path.join(str(self.basedirectory), str(self.repositorydirectory)))
 
 
-class CleanSolrIndex(luigi.Task):
-    """
-    Cleans a given Solr index from already existing data of a data package
-    """
-    date = ClosestDateParameter(default=datetime.date.today())
-    solruri = luigi.Parameter()
-    solrcore = luigi.Parameter()
-    deletequery = luigi.Parameter()
-    taskdir = luigi.Parameter()
-    salt = luigi.Parameter()
-    uritemplate = '{solruri}{solrcore}/update?commit=true'
-    headers = {'Content-Type': 'text/xml'}
-    payloadtemplate = '<delete><query>{deletequery}</query></delete>'
-
-    def requires(self):
-        return Available(service=self.solruri,
-                         message="provide a running Solr, please")
-
-    def run(self):
-        uri = self.uritemplate.format(solruri=self.solruri,
-                                      solrcore=self.solrcore)
-        payload = self.payloadtemplate.format(deletequery=self.deletequery)
-        result = {}
-
-        try:
-            response = requests.post(uri, data=payload, headers=self.headers)
-
-            result['status_code'] = response.status_code
-            result['content'] = response.content.decode('utf-8')
-
-            if result['status_code'] != 200:
-                raise RuntimeError("""could not successfully clean Solr core '%s' (status code = '%d')""" % (
-                    uri, response.status_code))
-
-            if not str(result['content']).startswith(
-                    """<?xml version="1.0" encoding="UTF-8"?>\n<response>\n<lst name="responseHeader"><int name="status">0</int>"""):
-                raise RuntimeError(
-                    """could not successfully clean Solr core '%s' (response = '%s')""" % (uri, result['content']))
-        except requests.exceptions.ConnectionError as error:
-            result['status_code'] = 404
-            result['error'] = str(error).replace('"', '\\"')
-
-            raise RuntimeError("""could not successfully establish connection to Solr index '%s'""" % uri)
-        finally:
-            with self.output().open('w') as outfile:
-                outfile.write(json.dumps(result, indent=None) + "\n")
-
-    def output(self):
-        filename = 'response_' + str(self.salt) + '.json'
-        return luigi.LocalTarget(path=os.path.join(self.taskdir, filename))
-
-    def complete(self):
-        # TODO maybe define a better complete criteria (?) (background: complete() will be executed before run())
-        # e.g. check, whether something of this source is in the index
-        # or move all the stuff from run to complete (?)
-        if not self.output().exists():
-            return False
-
-        with self.output().open('r') as resultfile:
-            result = json.loads(resultfile.read())
-
-            if result['status_code'] != 200:
-                return False
-
-            if not str(result['content']).startswith(
-                    """<?xml version="1.0" encoding="UTF-8"?>\n<response>\n<lst name="responseHeader"><int name="status">0</int>"""):
-                return False
-
-            return True
-
-
 class FillSolrIndex(luigi.Task):
     # TODO: define proper complete criteria (?)
     # e.g. check, whether the amount of records that should be loaded into the index is index (if not, then index load is not successfully)
@@ -282,11 +211,22 @@ class FillSolrIndex(luigi.Task):
     date = ClosestDateParameter(default=datetime.date.today())
     solruri = luigi.Parameter()
     solrcore = luigi.Parameter()
-    deletequery = luigi.Parameter()
+    purge = luigi.BoolParameter(significant=False)
+    purgequery = luigi.Parameter(significant=False)
     input = luigi.Parameter()
     taskdir = luigi.Parameter()
     outputfilename = luigi.Parameter()
     salt = luigi.Parameter()
+
+    def determineprefix(self, purge, purgequery):
+        solrbulk = 'solrbulk'
+
+        if purge and purgequery is not None:
+            return solrbulk + ' -purge -purge-query "' + purgequery + '"'
+        if purge:
+            return solrbulk + ' -purge'
+
+        return solrbulk
 
     def requires(self):
         return [
@@ -294,21 +234,18 @@ class FillSolrIndex(luigi.Task):
                       message="provide a running Solr, please"),
             Executable(name='solrbulk',
                        message='solrbulk command is missing on your system, you can, e.g., install it as a deb package on your Debian-based linux system (see https://github.com/miku/solrbulk#installation)'),
-            CleanSolrIndex(date=self.date,
-                           solruri=self.solruri,
-                           solrcore=self.solrcore,
-                           deletequery=self.deletequery,
-                           taskdir=self.taskdir,
-                           salt=self.salt)
         ]
 
     def run(self):
+        prefix = self.determineprefix(self.purge, self.purgequery)
         server = str(self.solruri) + str(self.solrcore)
         inputpath = self.input
         output = shellout(
-            """solrbulk -verbose -server {server} -w 2 < {input}""",
+            """{prefix} -verbose -server {server} -w 2 < {input}""",
+            prefix=prefix,
             server=server,
             input=inputpath)
+
         luigi.LocalTarget(output).move(self.output().path)
 
     def output(self):
