@@ -292,7 +292,8 @@ class FillSolrIndex(luigi.Task):
         return [
             Available(service=self.solruri,
                       message="provide a running Solr, please"),
-            Executable(name='solrbulk'),
+            Executable(name='solrbulk',
+                       message='solrbulk command is missing on your system, you can, e.g., install it as a deb package on your Debian-based linux system (see https://github.com/miku/solrbulk#installation)'),
             CleanSolrIndex(date=self.date,
                            solruri=self.solruri,
                            solrcore=self.solrcore,
