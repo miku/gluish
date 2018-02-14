@@ -23,16 +23,26 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 #
 
+import datetime
+import logging
 import os
 
 import luigi
+import requests
 
-__all__ = ['Executable']
+from gluish.parameter import ClosestDateParameter
+from gluish.utils import shellout
+
+__all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository', 'FillSolrIndex']
+
+logger = logging.getLogger('gluish')
+
 
 def which(program):
     """
     Return `None` if no executable can be found.
     """
+
     def is_exe(fpath):
         """ Is `fpath` executable? ` """
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -50,6 +60,45 @@ def which(program):
 
     return None
 
+
+def service_is_up(service):
+    """
+    Return `False` if HTTP services returns status code != 200.
+    """
+    try:
+        return requests.get(service).status_code == 200
+    except:
+        return False
+
+
+def getfirstline(file, default):
+    """
+    Returns the first line of a file.
+    """
+    with open(file, 'rb') as fh:
+        content = fh.readlines()
+        if len(content) == 1:
+            return content[0].decode('utf-8').strip('\n')
+
+    return default
+
+
+class chdir(object):
+    """
+    Change directory temporarily.
+    """
+
+    def __init__(self, path):
+        self.wd = os.getcwd()
+        self.dir = path
+
+    def __enter__(self):
+        os.chdir(self.dir)
+
+    def __exit__(self, *args):
+        os.chdir(self.wd)
+
+
 class Executable(luigi.Task):
     """
     Checks, whether an external executable is available. This task will consider
@@ -64,3 +113,140 @@ class Executable(luigi.Task):
 
     def complete(self):
         return which(self.name) is not None
+
+
+class Available(luigi.Task):
+    """
+    Checks, whether an HTTP service is available or not. This task will consider
+    itself complete, only if the HTTP service return a 200.
+    """
+    service = luigi.Parameter()
+    message = luigi.Parameter(default="")
+
+    def run(self):
+        """ Only run if, task is not complete. """
+        raise RuntimeError('HTTP service %s is not available (%s)' % (self.service, self.message))
+
+    def complete(self):
+        return service_is_up(self.service)
+
+
+class GitCloneRepository(luigi.Task):
+    """
+    Checks, whether a certain directory already exists (that should contain a Git repository) - otherwise it will be cloned.
+    """
+    gitrepository = luigi.Parameter()
+    repositorydirectory = luigi.Parameter()
+    basedirectory = luigi.Parameter()
+
+    def requires(self):
+        return Executable(name='git')
+
+    def run(self):
+        self.output().makedirs()
+        with chdir(str(self.basedirectory)):
+            shellout("""git clone {gitrepository}""", gitrepository=self.gitrepository)
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(self.basedirectory, str(self.repositorydirectory)))
+
+
+class GitUpdateRepository(luigi.Task):
+    """
+    Updates an existing Git repository
+    """
+    gitrepository = luigi.Parameter()
+    repositorydirectory = luigi.Parameter()
+    basedirectory = luigi.Parameter()
+    branch = luigi.Parameter(default="master", significant=False)
+
+    def requires(self):
+        return [
+            GitCloneRepository(gitrepository=self.gitrepository,
+                               repositorydirectory=self.repositorydirectory,
+                               basedirectory=self.basedirectory),
+            Executable(name='git')
+        ]
+
+    def run(self):
+        with chdir(str(self.output().path)):
+            shellout("""git checkout {branch}""", branch=self.branch)
+            shellout("""git pull origin {branch}""", branch=self.branch)
+
+    def complete(self):
+        if not self.output().exists():
+            return False
+
+        with chdir(str(self.output().path)):
+            output = shellout("""git fetch origin {branch} > {output} 2>&1""", branch=self.branch)
+
+            result = True
+
+            with open(output, 'rb') as fh:
+                content = fh.readlines()
+                if len(content) >= 3:
+                    result = False
+
+            revparseoutput = shellout("""git rev-parse {branch} > {output} 2>&1""", branch=self.branch)
+            originrevparseoutput = shellout("""git rev-parse origin/{branch} > {output} 2>&1""", branch=self.branch)
+
+            revparse = getfirstline(revparseoutput, "0")
+            originrevparse = getfirstline(originrevparseoutput, "1")
+
+            if revparse != originrevparse:
+                result = False
+
+        return result
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(str(self.basedirectory), str(self.repositorydirectory)))
+
+
+class FillSolrIndex(luigi.Task):
+    # TODO: define proper complete criteria (?)
+    # e.g. check, whether the amount of records that should be loaded into the index is index (if not, then index load is not successfully)
+    """
+    Loads processed data of a data package into a given Solr index (with help of solrbulk)
+    """
+    date = ClosestDateParameter(default=datetime.date.today())
+    solruri = luigi.Parameter()
+    solrcore = luigi.Parameter()
+    purge = luigi.BoolParameter(significant=False)
+    purgequery = luigi.Parameter(significant=False)
+    input = luigi.Parameter()
+    taskdir = luigi.Parameter()
+    outputfilename = luigi.Parameter()
+    salt = luigi.Parameter()
+
+    def determineprefix(self, purge, purgequery):
+        solrbulk = 'solrbulk'
+
+        if purge and purgequery is not None:
+            return solrbulk + ' -purge -purge-query "' + purgequery + '"'
+        if purge:
+            return solrbulk + ' -purge'
+
+        return solrbulk
+
+    def requires(self):
+        return [
+            Available(service=self.solruri,
+                      message="provide a running Solr, please"),
+            Executable(name='solrbulk',
+                       message='solrbulk command is missing on your system, you can, e.g., install it as a deb package on your Debian-based linux system (see https://github.com/miku/solrbulk#installation)'),
+        ]
+
+    def run(self):
+        prefix = self.determineprefix(self.purge, self.purgequery)
+        server = str(self.solruri) + str(self.solrcore)
+        inputpath = self.input
+        output = shellout(
+            """{prefix} -verbose -server {server} -w 2 < {input}""",
+            prefix=prefix,
+            server=server,
+            input=inputpath)
+
+        luigi.LocalTarget(output).move(self.output().path)
+
+    def output(self):
+        return luigi.LocalTarget(path=os.path.join(self.taskdir, str(self.outputfilename)))
