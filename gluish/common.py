@@ -31,34 +31,11 @@ import luigi
 import requests
 
 from gluish.parameter import ClosestDateParameter
-from gluish.utils import shellout
+from gluish.utils import shellout, which
 
 __all__ = ['Executable', 'Available', 'GitCloneRepository', 'GitUpdateRepository', 'FillSolrIndex']
 
 logger = logging.getLogger('gluish')
-
-
-def which(program):
-    """
-    Return `None` if no executable can be found.
-    """
-
-    def is_exe(fpath):
-        """ Is `fpath` executable? ` """
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
 
 
 def service_is_up(service):
