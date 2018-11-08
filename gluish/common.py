@@ -188,14 +188,16 @@ class FillSolrIndex(luigi.Task):
     date = ClosestDateParameter(default=datetime.date.today())
     solruri = luigi.Parameter()
     solrcore = luigi.Parameter()
-    purge = luigi.BoolParameter(significant=False)
-    purgequery = luigi.Parameter(significant=False)
+    purge = luigi.BoolParameter(default=False, significant=False)
+    purgequery = luigi.Parameter(default="", significant=False)
+    size = luigi.IntParameter(default=1000, significant=False)
+    worker = luigi.IntParameter(default=2, significant=False)
     input = luigi.Parameter()
     taskdir = luigi.Parameter()
     outputfilename = luigi.Parameter()
     salt = luigi.Parameter()
 
-    def determineprefix(self, purge, purgequery):
+    def determineprefix(self, purge=None, purgequery=None):
         solrbulk = 'solrbulk'
 
         if purge and purgequery is not None:
@@ -216,11 +218,15 @@ class FillSolrIndex(luigi.Task):
     def run(self):
         prefix = self.determineprefix(self.purge, self.purgequery)
         server = str(self.solruri) + str(self.solrcore)
+        chunksize = self.size
+        cores = self.worker
         inputpath = self.input
         output = shellout(
-            """{prefix} -verbose -server {server} -w 2 < {input}""",
+            """{prefix} -verbose -server {server} -size {size} -w {worker} < {input}""",
             prefix=prefix,
             server=server,
+            size=chunksize,
+            worker=cores,
             input=inputpath)
 
         luigi.LocalTarget(output).move(self.output().path)
