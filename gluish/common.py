@@ -192,6 +192,7 @@ class FillSolrIndex(luigi.Task):
     purgequery = luigi.Parameter(default="", significant=False)
     size = luigi.IntParameter(default=1000, significant=False)
     worker = luigi.IntParameter(default=2, significant=False)
+    commitlimit = luigi.IntParameter(default=1000, significant=False)
     input = luigi.Parameter()
     taskdir = luigi.Parameter()
     outputfilename = luigi.Parameter()
@@ -221,12 +222,14 @@ class FillSolrIndex(luigi.Task):
         chunksize = self.size
         cores = self.worker
         inputpath = self.input
+        commit = self.commitlimit
         output = shellout(
-            """{prefix} -verbose -server {server} -size {size} -w {worker} < {input}""",
+            """{prefix} -verbose -server {server} -size {size} -w {worker} -commit {commit} < {input}""",
             prefix=prefix,
             server=server,
             size=chunksize,
             worker=cores,
+            commit=commit,
             input=inputpath)
 
         luigi.LocalTarget(output).move(self.output().path)
