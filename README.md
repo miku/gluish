@@ -1,5 +1,4 @@
-Gluish
-======
+# Gluish
 
 Note: v0.2.X cleans up some cruft from v0.1.X. v0.2.X still passes the same
 tests as v0.1.X, but removes a lot of functionality unrelated to luigi. Please
@@ -11,6 +10,8 @@ Luigi 2.0 compatibility: gluish 0.2.3 or higher.
 
 [![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](http://img.shields.io/pypi/v/gluish.svg?style=flat)](https://pypi.python.org/pypi/gluish)
+[![DOI](https://zenodo.org/badge/17902915.svg)](https://zenodo.org/badge/latestdoi/17902915)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 Some glue around [luigi](https://github.com/spotify/luigi).
 
@@ -22,8 +23,7 @@ Provides a base class, that autogenerates its output filenames based on
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
 
-A basic task that knows its place
----------------------------------
+## A basic task that knows its place
 
 `gluish.task.BaseTask` is intended to be used as a supertask.
 
@@ -64,8 +64,7 @@ task.output().path
 
 ```
 
-A TSV format
-------------
+## A TSV format
 
 Was started on the
 [mailing list](https://groups.google.com/forum/#!searchin/luigi-user/TSV/luigi-user/F813st16xqw/xErC6pXR8zEJ).
@@ -106,8 +105,7 @@ class TabularConsumer(DefaultTask):
         return False
 ```
 
-Easy shell calls
-----------------
+## Easy shell calls
 
 Leverage command line tools with [`gluish.utils.shellout`](https://github.com/miku/gluish/blob/943993d29fe88d352d110620a717303b19897577/gluish/utils.py#L199). `shellout` will
 take a string argument and will format it according to the keyword arguments.
@@ -150,8 +148,7 @@ class GIFScreencast(DefaultTask):
         return luigi.LocalTarget(path=self.path())
 ```
 
-Dynamic date parameter
-----------------------
+## Dynamic date parameter
 
 Sometimes the *effective* date for a task needs to be determined dynamically.
 
