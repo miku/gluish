@@ -23,6 +23,8 @@ Provides a base class, that autogenerates its output filenames based on
 Additionally, this package provides a few smaller utilities, like a TSV format,
 a benchmarking decorator and some task templates.
 
+This project has been developed for [Project finc](https://finc.info) at [Leipzig University Library](https://ub.uni-leipzig.de).
+
 ## A basic task that knows its place
 
 `gluish.task.BaseTask` is intended to be used as a supertask.
