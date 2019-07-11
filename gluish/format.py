@@ -49,6 +49,7 @@ from builtins import str
 
 import luigi
 from gluish.utils import random_string, which
+from six import string_types
 
 __all__ = ['TSV']
 
@@ -59,7 +60,13 @@ def write_tsv(output_stream, *tup, **kwargs):
     """
     encoding = kwargs.get('encoding') or 'utf-8'
     value = u'\t'.join([s for s in tup]) + '\n'
-    output_stream.write(value.encode(encoding))
+    if encoding is None:
+        if isinstance(value, string_types):
+            output_stream.write(value.encode('utf-8'))
+        else:
+            output_stream.write(value)
+    else:
+        output_stream.write(value.encode(encoding))
 
 
 def iter_tsv(input_stream, cols=None, encoding='utf-8'):
