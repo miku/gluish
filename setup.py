@@ -34,7 +34,7 @@ Additionally, provide some smaller utilities, like a TSV format.
 from setuptools import setup
 
 setup(name='gluish',
-      version='0.2.14',
+      version='0.2.15',
       description='Luigi helper.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
