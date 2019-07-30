@@ -8,7 +8,7 @@ Luigi 2.0 compatibility: gluish 0.2.3 or higher.
 
 ----
 
-[![Build Status](http://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
+[![Build Status](https://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
 [![pypi version](https://badge.fury.io/py/gluish.png)](https://pypi.python.org/pypi/gluish)
 [![DOI](https://zenodo.org/badge/17902915.svg)](https://zenodo.org/badge/latestdoi/17902915)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
