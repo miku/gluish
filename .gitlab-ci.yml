@@ -1,0 +1,29 @@
+image: python:3.6.9-buster
+
+stages:
+  - test
+  - deploy
+
+before_script:
+   - pip install pytest twine
+
+tests:
+  stage: test
+  script:
+    - python setup.py develop --index-url $PYPI_PROXY_URL # faster, less load for pypi
+    - pytest
+  tags: [docker]
+  except:
+    - tags
+
+upload_to_nexus:
+  stage: deploy
+  variables:
+    TWINE_USERNAME: $NEXUS_USERNAME
+    TWINE_PASSWORD: $NEXUS_PASSWORD
+  script:
+    - python setup.py sdist
+    - twine upload --repository-url $NEXUS_REPOSITORY_URL dist/*
+  only:
+    - tags
+  tags: [docker]
