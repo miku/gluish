@@ -27,7 +27,7 @@
 Gluish - few utils for luigi.
 """
 
-__version__ = '0.2.16'
+__version__ = '0.2.17'
 
 from gluish.common import *
 from gluish.format import *
