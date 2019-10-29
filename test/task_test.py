@@ -217,52 +217,52 @@ class TaskTest(unittest.TestCase):
             shutil.rmtree(base_dir)
 
     def test_is_closest_date_parameter(self):
-        self.assertEquals(is_closest_date_parameter(TaskL, 'date'), True)
-        self.assertEquals(is_closest_date_parameter(TaskG, 'date'), False)
+        self.assertEqual(is_closest_date_parameter(TaskL, 'date'), True)
+        self.assertEqual(is_closest_date_parameter(TaskG, 'date'), False)
 
     def test_generic_task(self):
         """ Only output tests. """
         prefix = os.path.join(TestTask.BASE, TestTask.TAG)
 
         task = TaskA()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskA', 'output.tsv'))
 
         task = TaskB()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskB', 'date-1970-01-01.tsv'))
 
         task = TaskC()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskC', 'date-1970-01-01-threshold-0.1.tsv'))
 
         task = TaskD()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskD', 'date-1970-01-01-threshold-0.1.tsv'))
 
         task = TaskE()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskE', 'date-1999-01-01-threshold-0.1.tsv'))
 
         task = TaskF()
-        self.assertEquals(task.closest(), datetime.date(1999, 12, 31))
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.closest(), datetime.date(1999, 12, 31))
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskF', 'date-1999-12-31.tsv'))
 
         task = TaskG()
-        self.assertEquals(task.closest(), datetime.date(2000, 1, 1))
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.closest(), datetime.date(2000, 1, 1))
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskG', 'date-2000-01-01.tsv'))
 
         task = TaskH()
-        self.assertEquals(task.closest, datetime.date(2000, 1, 1))
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.closest, datetime.date(2000, 1, 1))
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskH', 'closest-2000-01-01.tsv'))
 
         task = TaskI()
         self.assertRaises(AttributeError, task.closest)
 
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskI', 'output.tsv'))
 
         task = TaskJ()
@@ -270,33 +270,33 @@ class TaskTest(unittest.TestCase):
         self.assertRaises(ValueError, task.output)
 
         task = TaskK()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskK', 'date-10.1.tsv'))
 
         task = TaskL()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
 
         task = TaskL()
-        self.assertEquals(task.output().path,
+        self.assertEqual(task.output().path,
             os.path.join(prefix, 'TaskL', 'date-ABC.tsv'))
 
     def test_mock_task(self):
         """ Test the mock class. """
         task = MockTask(fixture=os.path.join(FIXTURES, 'l-1.txt'))
-        self.assertEquals(task.content(), '1\n')
+        self.assertEqual(task.content(), '1\n')
         luigi.build([task], local_scheduler=True)
-        self.assertEquals(task.output().open().read(), '1\n')
+        self.assertEqual(task.output().open().read(), '1\n')
 
     def test_effective_id(self):
         """ Test effective_task_id """
         task = TaskK()
         self.assertTrue(task.task_id.startswith('TaskK_2000_01_01'))
-        self.assertEquals('TaskK(date=10.1)', task.effective_task_id())
+        self.assertEqual('TaskK(date=10.1)', task.effective_task_id())
 
         task = TaskM()
         self.assertTrue(task.task_id.startswith('TaskM_1_2_hello_'))
-        self.assertEquals('TaskM(a=1, b=2, c=hello, date=10.1)',
+        self.assertEqual('TaskM(a=1, b=2, c=hello, date=10.1)',
                           task.effective_task_id())
 
         task = TaskG()
