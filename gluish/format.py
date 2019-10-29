@@ -142,5 +142,27 @@ class GzipFormat(luigi.format.Format):
             args.append('-' + str(int(self.compression_level)))
         return luigi.format.OutputPipeProcessWrapper(args, output_pipe)
 
+class ZstdFormat(luigi.format.Format):
+    """
+    The zstandard format.
+    """
+    input = 'bytes'
+    output = 'bytes'
+
+    def __init__(self, compression_level=None):
+        self.compression_level = compression_level
+        self.zstd = ["zstd"]
+        self.unzstd = ["unzstd"]
+
+    def pipe_reader(self, input_pipe):
+        return luigi.format.InputPipeProcessWrapper(self.unzstd, input_pipe)
+
+    def pipe_writer(self, output_pipe):
+        args = self.zstd
+        if self.compression_level is not None:
+            args.append('-' + str(int(self.compression_level)))
+        return luigi.format.OutputPipeProcessWrapper(args, output_pipe)
+
 TSV = TSVFormat()
 Gzip = GzipFormat()
+Zstd = ZstdFormat()
