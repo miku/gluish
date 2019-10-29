@@ -22,11 +22,14 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 #
 
+import gzip
+import hashlib
+import os
 import tempfile
 import unittest
 
 import luigi
-from gluish.format import TSV, iter_tsv, write_tsv
+from gluish.format import TSV, iter_tsv, write_tsv, Gzip
 
 
 class FormatTest(unittest.TestCase):
@@ -88,6 +91,29 @@ class TSVFormatTest(unittest.TestCase):
         with target.open('rb') as handle:
             self.assertTrue(hasattr(handle, 'iter_tsv'))
 
+DUMMY_GZIP_FILENAME = '/tmp/gluish-DummyGzipTask-test'
+
+class DummyGzipTask(luigi.Task):
+    def run(self):
+        with self.output().open('wb') as output:
+            output.write(b"hello")
+    def output(self):
+        return luigi.LocalTarget(path=DUMMY_GZIP_FILENAME, format=Gzip)
+
+class GzipFormatTest(unittest.TestCase):
+
+    def test_decompress(self):
+        try:
+            os.remove(DUMMY_GZIP_FILENAME)
+        except FileNotFoundError:
+            pass
+
+        task = DummyGzipTask()
+        luigi.build([task])
+
+        self.assertTrue(os.path.exists(DUMMY_GZIP_FILENAME))
+        with gzip.open(DUMMY_GZIP_FILENAME) as f:
+            self.assertEqual(f.read(), b'hello')
 
 if __name__ == '__main__':
     unittest.main()
