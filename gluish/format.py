@@ -51,7 +51,7 @@ import luigi
 from gluish.utils import random_string, which
 from six import string_types
 
-__all__ = ['TSV']
+__all__ = ['TSV', 'Gzip', 'Zstd']
 
 
 def write_tsv(output_stream, *tup, **kwargs):
