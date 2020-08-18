@@ -45,7 +45,6 @@ from __future__ import unicode_literals
 
 import collections
 import functools
-from builtins import str
 
 import luigi
 from gluish.utils import random_string, which

@@ -44,7 +44,6 @@ setup(name='gluish',
       ],
       package_dir={'gluish': 'gluish'},
       install_requires=[
-          'future>=0.16',
           'luigi>=1.0.20',
           'python-dateutil>=2.2',
           'pytz>=2014.4',
