@@ -32,10 +32,9 @@ Additionally, provide some smaller utilities, like a TSV format.
 """
 
 from setuptools import setup
-from gluish import __version__
 
 setup(name='gluish',
-      version=__version__,
+      version='0.3.0',
       description='Luigi helper.',
       url='https://github.com/miku/gluish',
       author='Martin Czygan',
