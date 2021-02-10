@@ -6,6 +6,8 @@ check, before you upgrade.
 
 Luigi 2.0 compatibility: gluish 0.2.3 or higher.
 
+Note that luigi dropped Python 2 support, and so does this package, starting with 0.3.0.
+
 ----
 
 [![Build Status](https://img.shields.io/travis/miku/gluish.svg?style=flat)](https://travis-ci.org/miku/gluish)
