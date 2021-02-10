@@ -109,7 +109,7 @@ class GzipFormatTest(unittest.TestCase):
             pass
 
         task = DummyGzipTask()
-        luigi.build([task])
+        luigi.build([task], local_scheduler=True)
 
         self.assertTrue(os.path.exists(DUMMY_GZIP_FILENAME))
         with gzip.open(DUMMY_GZIP_FILENAME) as f:
